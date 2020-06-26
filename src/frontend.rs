@@ -23,17 +23,16 @@ fn show_ast(ast: &types::UntypedAST) -> String {
       format!(" if {} then {} else {} ", b_s, t_s, f_s)
     }
     types::UntypedASTMain::Apply(name, arg_lst) => {
-      let (name_s,_) = name;
+      let (name_s, _) = name;
       let mut arg_s = String::new();
       for i in 0..arg_lst.len() {
         let v = &arg_lst[i];
         if i == arg_lst.len() {
           arg_s.push_str(&format!("{}", show_ast(&v)))
-        }
-        else {
+        } else {
           arg_s.push_str(&format!("{}, ", show_ast(&v)))
         }
-      };
+      }
       format!(" {}({}) ", name_s, arg_s)
     }
     types::UntypedASTMain::BinApply(n, l, r) => {

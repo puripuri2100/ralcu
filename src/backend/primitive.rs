@@ -117,9 +117,10 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => {
-          (types::UntypedASTMain::FloatConst(v1 + v2), rng1.merge(&rng2))
-        }
+        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => (
+          types::UntypedASTMain::FloatConst(v1 + v2),
+          rng1.merge(&rng2),
+        ),
         _ => panic!(),
       }
     }
@@ -135,9 +136,10 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => {
-          (types::UntypedASTMain::FloatConst(v1 - v2), rng1.merge(&rng2))
-        }
+        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => (
+          types::UntypedASTMain::FloatConst(v1 - v2),
+          rng1.merge(&rng2),
+        ),
         _ => panic!(),
       }
     }
@@ -153,9 +155,10 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => {
-          (types::UntypedASTMain::FloatConst(v1 * v2), rng1.merge(&rng2))
-        }
+        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => (
+          types::UntypedASTMain::FloatConst(v1 * v2),
+          rng1.merge(&rng2),
+        ),
         _ => panic!(),
       }
     }
@@ -171,9 +174,10 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => {
-          (types::UntypedASTMain::FloatConst(v1 / v2), rng1.merge(&rng2))
-        }
+        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => (
+          types::UntypedASTMain::FloatConst(v1 / v2),
+          rng1.merge(&rng2),
+        ),
         _ => panic!(),
       }
     }
@@ -225,9 +229,10 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::IntConst(v1), types::UntypedASTMain::IntConst(v2)) => {
-          (types::UntypedASTMain::BoolConst(v1 == v2), rng1.merge(&rng2))
-        }
+        (types::UntypedASTMain::IntConst(v1), types::UntypedASTMain::IntConst(v2)) => (
+          types::UntypedASTMain::BoolConst(v1 == v2),
+          rng1.merge(&rng2),
+        ),
         _ => panic!(),
       }
     }
@@ -235,18 +240,20 @@ fn primitives_bin_fn(
   }
 }
 
-
-fn primitives_fn(fn_name: &(String, types::Range), input_lst: &Vec<types::UntypedAST>) -> types::UntypedAST {
+fn primitives_fn(
+  fn_name: &(String, types::Range),
+  input_lst: &Vec<types::UntypedAST>,
+) -> types::UntypedAST {
   let fn_name_str = fn_name.0.as_str();
   match fn_name_str {
     "int" => {
       if input_lst.len() == 1 {
         let ast = apply(&input_lst[0]);
         match ast {
-          (types::UntypedASTMain::FloatConst(f),rng) => {
+          (types::UntypedASTMain::FloatConst(f), rng) => {
             (types::UntypedASTMain::IntConst(f as i64), rng)
           }
-          _ => {panic!()}
+          _ => panic!(),
         }
       } else {
         panic!()
@@ -256,10 +263,10 @@ fn primitives_fn(fn_name: &(String, types::Range), input_lst: &Vec<types::Untype
       if input_lst.len() == 1 {
         let ast = apply(&input_lst[0]);
         match ast {
-          (types::UntypedASTMain::IntConst(i),rng) => {
+          (types::UntypedASTMain::IntConst(i), rng) => {
             (types::UntypedASTMain::FloatConst(i as f64), rng)
           }
-          _ => {panic!()}
+          _ => panic!(),
         }
       } else {
         panic!()
@@ -269,10 +276,10 @@ fn primitives_fn(fn_name: &(String, types::Range), input_lst: &Vec<types::Untype
       if input_lst.len() == 1 {
         let ast = apply(&input_lst[0]);
         match ast {
-          (types::UntypedASTMain::FloatConst(f),rng) => {
+          (types::UntypedASTMain::FloatConst(f), rng) => {
             (types::UntypedASTMain::FloatConst(f.sin()), rng)
           }
-          _ => {panic!()}
+          _ => panic!(),
         }
       } else {
         panic!()
@@ -282,17 +289,20 @@ fn primitives_fn(fn_name: &(String, types::Range), input_lst: &Vec<types::Untype
       if input_lst.len() == 2 {
         let ast1 = apply(&input_lst[0]);
         let ast2 = apply(&input_lst[1]);
-        match (ast1,ast2) {
-          ((types::UntypedASTMain::IntConst(i1),rng1), (types::UntypedASTMain::IntConst(i2),rng2)) => {
+        match (ast1, ast2) {
+          (
+            (types::UntypedASTMain::IntConst(i1), rng1),
+            (types::UntypedASTMain::IntConst(i2), rng2),
+          ) => {
             let rng = rng1.merge(&rng2);
             (types::UntypedASTMain::IntConst(i1 + i2), rng)
           }
-          _ => {panic!()}
+          _ => panic!(),
         }
       } else {
         panic!()
       }
     }
-    _ => panic!()
+    _ => panic!(),
   }
 }

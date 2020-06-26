@@ -94,42 +94,28 @@ fn error_eof(r: types::Range) -> LexError {
 
 fn is_digit(c: &char) -> bool {
   match *c {
-    '1' | '2' | '3' | '4'
-    | '5' | '6' | '7' | '8'
-    | '9' | '0' => true,
+    '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '0' => true,
     _ => false,
   }
 }
 fn is_capital(c: &char) -> bool {
   match *c {
-    'A' | 'B' | 'C' | 'D'
-    | 'E' | 'F' | 'G' | 'H'
-    | 'I' | 'J' | 'K' | 'L'
-    | 'M' | 'N' | 'O' | 'P'
-    | 'Q' | 'R' | 'S' | 'T'
-    | 'U' | 'V' | 'W' | 'X'
-    | 'Y' | 'Z' => true,
+    'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O'
+    | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' => true,
     _ => false,
   }
 }
 fn is_small(c: &char) -> bool {
   match *c {
-    'a' | 'b' | 'c' | 'd'
-    | 'e' | 'f' | 'g' | 'h'
-    | 'i' | 'j' | 'k' | 'l'
-    | 'm' | 'n' | 'o' | 'p'
-    | 'q' | 'r' | 's' | 't'
-    | 'u' | 'v' | 'w' | 'x'
-    | 'y' | 'z' => true,
+    'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o'
+    | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' => true,
     _ => false,
   }
 }
 fn is_opsymbol(c: &char) -> bool {
   match *c {
-    '+' | '-' | '*' | '/'
-    | '^' | '&' | '|' | '!'
-    | ':' | '=' | '<' | '>'
-    | '~' | '\'' | '.' | '?' => true,
+    '+' | '-' | '*' | '/' | '^' | '&' | '|' | '!' | ':' | '=' | '<' | '>' | '~' | '\'' | '.'
+    | '?' => true,
     _ => false,
   }
 }
@@ -294,7 +280,7 @@ fn recognize_many(input: &Vec<char>, mut pos: usize, mut f: impl FnMut(char) -> 
 
 // 空白等を無視する
 fn skip_spaces(input: &Vec<char>, pos: usize) -> Result<((), usize), LexError> {
-  let pos = recognize_many(input, pos, |c| {' ' == c || '\t' == c || '\n' == c});
+  let pos = recognize_many(input, pos, |c| ' ' == c || '\t' == c || '\n' == c);
   Ok(((), pos))
 }
 
@@ -331,10 +317,7 @@ fn lex_identifier(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexEr
       end_pos,
     )),
     "if" => Ok((
-      (
-        TokenKind::IF,
-        types::Range::make_start_end(start, end_pos),
-      ),
+      (TokenKind::IF, types::Range::make_start_end(start, end_pos)),
       end_pos,
     )),
     "then" => Ok((
