@@ -34,9 +34,9 @@ pub enum UntypedASTMain {
   FloatConst(f64),
   BoolConst(bool),
   IfThenElse(Box<UntypedAST>, Box<UntypedAST>, Box<UntypedAST>),
-  Apply((String, Range), Vec<UntypedAST>),
+  Apply(Box<UntypedAST>, Box<UntypedAST>),
   BinApply((String, Range), Box<UntypedAST>, Box<UntypedAST>),
-  ContentOf(String),
+  ContentOf(Vec<String>, String),
 }
 
 pub type UntypedAST = (UntypedASTMain, Range);

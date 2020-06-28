@@ -249,7 +249,7 @@ lpl_mi_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
 
 //<lti_div> := <bot> <lti_div_sub>
 lti_div: "types::UntypedAST" = {
-  <utast: bot> <utaststr2opt: lti_div_sub> => {"
+  <utast: app> <utaststr2opt: lti_div_sub> => {"
     match utaststr2opt {
       None => {utast}
       Some((op, utastr)) => {
@@ -291,6 +291,35 @@ lti_div_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
 };
 
 
+app: "types::UntypedAST" = {
+  <utast1: bot> <utast2_lst: app_sub> => {"
+    let mut v = utast2_lst;
+    v.reverse();
+    let mut utast = utast1;
+    for utast2 in v.iter() {
+      let (_, rng1) = utast;
+      let (_, rng2) = utast2;
+      let rng = rng1.merge(&rng2);
+      let new_utast = (types::UntypedASTMain::Apply(
+        Box::new(utast), Box::new(utast2.clone())
+      ), rng);
+      utast = new_utast;
+    };
+    utast"
+  },
+};
+
+
+// 左結合させたいので、とりあえずリストにして、<app>でforを使って左結合させる
+app_sub: "Vec<types::UntypedAST>" = {
+  <utast1: bot> <utast2_lst: app_sub> => {"
+    let mut v = utast2_lst;
+    v.push(utast1);
+    v"
+  },
+  => {"Vec::new()"}
+};
+
 
 
 bot: "types::UntypedAST" = {
@@ -318,34 +347,10 @@ bot: "types::UntypedAST" = {
     let (main,_) = utast;
     (main, rngo.merge(&rngc))"
   },
-  <fname: Tok_VAR> <_: Tok_LPAREN> <args: args> <cls: Tok_RPAREN> => {"
-    let (nametok,rngs) = fname;
-    let name_str = lexer::get_string(nametok).unwrap();
-    let (_,rnge) = cls;
-    let rng = rngs.merge(&rnge);
-    let mut args = args;
-    args.reverse();
-    (types::UntypedASTMain::Apply((name_str, rngs), args), rng)"
-  }
-};
-
-
-args: "Vec<types::UntypedAST>" = {
-  <arg: lor> <tail: args_sub> => {"
-    let mut v = tail;
-    v.push(arg);
-    v"
+  <var: Tok_VAR> => {"
+    let (vartok, rng) = var;
+    let varnm = lexer::get_string(vartok).unwrap();
+    (types::UntypedASTMain::ContentOf(Vec::new(), varnm), rng)"
   },
-  => {"Vec::new()"}
-};
-
-
-args_sub: "Vec<types::UntypedAST>" = {
-  <_: Tok_COMMA> <arg: lor> <tail: args> => {"
-    let mut v = tail;
-    v.push(arg);
-    v"
-  },
-  => {"Vec::new()"},
 };
 

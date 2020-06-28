@@ -609,7 +609,7 @@ where
     });
   let main = match code_type? {
     CodeType::Tok1 => {
-      let utast = _parse_fn_bot(tokens)?;
+      let utast = _parse_fn_app(tokens)?;
       let utaststr2opt = _parse_fn_lti_div_sub(tokens)?;
 
       match utaststr2opt {
@@ -686,6 +686,95 @@ where
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
+fn _parse_fn_app<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<types::UntypedAST, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  enum CodeType {
+    Tok1,
+    Other,
+  }
+  let code_type = tokens
+    .peek()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok {
+      (lexer::TokenKind::FALSE, _)
+      | (lexer::TokenKind::FLOATCONST(_), _)
+      | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LPAREN, _)
+      | (lexer::TokenKind::TRUE, _)
+      | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
+
+      _ => Ok(CodeType::Other),
+    });
+  let main = match code_type? {
+    CodeType::Tok1 => {
+      let utast1 = _parse_fn_bot(tokens)?;
+      let utast2_lst = _parse_fn_app_sub(tokens)?;
+
+      let mut v = utast2_lst;
+      v.reverse();
+      let mut utast = utast1;
+      for utast2 in v.iter() {
+        let (_, rng1) = utast;
+        let (_, rng2) = utast2;
+        let rng = rng1.merge(&rng2);
+        let new_utast = (
+          types::UntypedASTMain::Apply(Box::new(utast), Box::new(utast2.clone())),
+          rng,
+        );
+        utast = new_utast;
+      }
+      utast
+    }
+    _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
+  };
+  Ok(main)
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_fn_app_sub<Tokens>(
+  tokens: &mut Peekable<Tokens>,
+) -> Result<Vec<types::UntypedAST>, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  enum CodeType {
+    Tok1,
+    Other,
+  }
+  let code_type = tokens
+    .peek()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok {
+      (lexer::TokenKind::FALSE, _)
+      | (lexer::TokenKind::FLOATCONST(_), _)
+      | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LPAREN, _)
+      | (lexer::TokenKind::TRUE, _)
+      | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
+
+      _ => Ok(CodeType::Other),
+    });
+  let main = match code_type? {
+    CodeType::Tok1 => {
+      let utast1 = _parse_fn_bot(tokens)?;
+      let utast2_lst = _parse_fn_app_sub(tokens)?;
+
+      let mut v = utast2_lst;
+      v.push(utast1);
+      v
+    }
+    _ => Vec::new(),
+  };
+  Ok(main)
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
 fn _parse_fn_bot<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<types::UntypedAST, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
@@ -750,96 +839,13 @@ where
       (main, rngo.merge(&rngc))
     }
     CodeType::Tok6 => {
-      let fname = _parse_token_Tok_VAR(tokens)?;
-      let _ = _parse_token_Tok_LPAREN(tokens)?;
-      let args = _parse_fn_args(tokens)?;
-      let cls = _parse_token_Tok_RPAREN(tokens)?;
+      let var = _parse_token_Tok_VAR(tokens)?;
 
-      let (nametok, rngs) = fname;
-      let name_str = lexer::get_string(nametok).unwrap();
-      let (_, rnge) = cls;
-      let rng = rngs.merge(&rnge);
-      let mut args = args;
-      args.reverse();
-      (types::UntypedASTMain::Apply((name_str, rngs), args), rng)
+      let (vartok, rng) = var;
+      let varnm = lexer::get_string(vartok).unwrap();
+      (types::UntypedASTMain::ContentOf(Vec::new(), varnm), rng)
     }
     _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
-  };
-  Ok(main)
-}
-
-#[allow(non_camel_case_types)]
-#[allow(non_snake_case)]
-#[allow(unused_parens)]
-fn _parse_fn_args<Tokens>(
-  tokens: &mut Peekable<Tokens>,
-) -> Result<Vec<types::UntypedAST>, ParseError>
-where
-  Tokens: Iterator<Item = lexer::Token>,
-{
-  enum CodeType {
-    Tok1,
-    Other,
-  }
-  let code_type = tokens
-    .peek()
-    .ok_or(ParseError::Eof)
-    .and_then(|tok| match tok {
-      (lexer::TokenKind::FALSE, _)
-      | (lexer::TokenKind::FLOATCONST(_), _)
-      | (lexer::TokenKind::INTCONST(_), _)
-      | (lexer::TokenKind::LPAREN, _)
-      | (lexer::TokenKind::TRUE, _)
-      | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
-
-      _ => Ok(CodeType::Other),
-    });
-  let main = match code_type? {
-    CodeType::Tok1 => {
-      let arg = _parse_fn_lor(tokens)?;
-      let tail = _parse_fn_args_sub(tokens)?;
-
-      let mut v = tail;
-      v.push(arg);
-      v
-    }
-    _ => Vec::new(),
-  };
-  Ok(main)
-}
-
-#[allow(non_camel_case_types)]
-#[allow(non_snake_case)]
-#[allow(unused_parens)]
-fn _parse_fn_args_sub<Tokens>(
-  tokens: &mut Peekable<Tokens>,
-) -> Result<Vec<types::UntypedAST>, ParseError>
-where
-  Tokens: Iterator<Item = lexer::Token>,
-{
-  enum CodeType {
-    Tok1,
-    Other,
-  }
-  let code_type = tokens
-    .peek()
-    .ok_or(ParseError::Eof)
-    .and_then(|tok| match tok {
-      (lexer::TokenKind::COMMA, _) => Ok(CodeType::Tok1),
-
-      _ => Ok(CodeType::Other),
-    });
-  let main = match code_type? {
-    CodeType::Tok1 => {
-      let _ = _parse_token_Tok_COMMA(tokens)?;
-      let arg = _parse_fn_lor(tokens)?;
-      let tail = _parse_fn_args(tokens)?;
-
-      let mut v = tail;
-      v.push(arg);
-      v
-    }
-    _ => Vec::new(),
   };
   Ok(main)
 }

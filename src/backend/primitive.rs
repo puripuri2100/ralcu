@@ -7,8 +7,8 @@ pub fn apply(input: &types::UntypedAST) -> types::UntypedAST {
     types::UntypedASTMain::FloatConst(_) => input.clone(),
     types::UntypedASTMain::BoolConst(_) => input.clone(),
     types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
-    types::UntypedASTMain::Apply(name, arg_lst) => primitives_fn(name, arg_lst),
-    types::UntypedASTMain::ContentOf(_) => input.clone(),
+    types::UntypedASTMain::Apply(utast1, utast2) => input.clone(), //primitives_fn(utast1, utast2),
+    types::UntypedASTMain::ContentOf(_, _) => input.clone(),
     types::UntypedASTMain::IfThenElse(b, t, f) => {
       let (b_bool_ast, _) = apply(b);
       let t_ast = apply(t);
@@ -240,69 +240,8 @@ fn primitives_bin_fn(
   }
 }
 
-fn primitives_fn(
-  fn_name: &(String, types::Range),
-  input_lst: &Vec<types::UntypedAST>,
-) -> types::UntypedAST {
-  let fn_name_str = fn_name.0.as_str();
-  match fn_name_str {
-    "int" => {
-      if input_lst.len() == 1 {
-        let ast = apply(&input_lst[0]);
-        match ast {
-          (types::UntypedASTMain::FloatConst(f), rng) => {
-            (types::UntypedASTMain::IntConst(f as i64), rng)
-          }
-          _ => panic!(),
-        }
-      } else {
-        panic!()
-      }
-    }
-    "float" => {
-      if input_lst.len() == 1 {
-        let ast = apply(&input_lst[0]);
-        match ast {
-          (types::UntypedASTMain::IntConst(i), rng) => {
-            (types::UntypedASTMain::FloatConst(i as f64), rng)
-          }
-          _ => panic!(),
-        }
-      } else {
-        panic!()
-      }
-    }
-    "sin" => {
-      if input_lst.len() == 1 {
-        let ast = apply(&input_lst[0]);
-        match ast {
-          (types::UntypedASTMain::FloatConst(f), rng) => {
-            (types::UntypedASTMain::FloatConst(f.sin()), rng)
-          }
-          _ => panic!(),
-        }
-      } else {
-        panic!()
-      }
-    }
-    "int_plus" => {
-      if input_lst.len() == 2 {
-        let ast1 = apply(&input_lst[0]);
-        let ast2 = apply(&input_lst[1]);
-        match (ast1, ast2) {
-          (
-            (types::UntypedASTMain::IntConst(i1), rng1),
-            (types::UntypedASTMain::IntConst(i2), rng2),
-          ) => {
-            let rng = rng1.merge(&rng2);
-            (types::UntypedASTMain::IntConst(i1 + i2), rng)
-          }
-          _ => panic!(),
-        }
-      } else {
-        panic!()
-      }
-    }
-    _ => panic!(),
-  }
+fn primitives_fn(utastl: &types::UntypedAST, utastr: &types::UntypedAST) -> types::UntypedAST {
+  let utastl = apply(utastl);
+  let utastr = apply(utastr);
+  panic!()
 }
