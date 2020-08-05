@@ -1,8 +1,8 @@
 use std::fs::File;
 use std::io::prelude::*;
 
-pub mod backend;
-pub mod frontend;
+pub mod lexer;
+pub mod parser;
 pub mod types;
 
 fn main() {
@@ -36,12 +36,7 @@ fn main() {
 
 #[allow(dead_code)]
 fn a(s: &str) {
-  let ast = backend::main(&frontend::get_ast(s));
-  println!("{} => {}", s, ast)
-}
-
-#[allow(dead_code)]
-fn b(s: &str) {
-  let (ast, _) = frontend::get_ast(s);
+  let tokens = lexer::lex(s).unwrap();
+  let ast = parser::parse(tokens).unwrap();
   println!("{} => {:?}", s, ast)
 }

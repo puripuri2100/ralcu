@@ -28,7 +28,7 @@ impl Range {
   }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum UntypedASTMain {
   IntConst(i64),
   FloatConst(f64),
@@ -55,4 +55,29 @@ pub fn binary_operator(
     UntypedASTMain::BinApply((op, oprng), Box::new(utastL), Box::new(utastR)),
     rng,
   )
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ASTMain {
+  IntConst(i64),
+  FloatConst(f64),
+  BoolConst(bool),
+  IfThenElse(Box<AST>, Box<AST>, Box<AST>),
+  Apply(Box<AST>, Box<AST>),
+  BinApply((String, Range), Box<AST>, Box<AST>),
+  ContentOf(Vec<String>, String),
+}
+
+pub type AST = (ASTMain, Range);
+
+pub type tyvar = u64;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Ty {
+  TyInt,
+  TyBool,
+  TyFloat,
+  TyVar(tyvar),
+  TyFun(Box<Ty>, Box<Ty>),
+  TyList(Box<Ty>),
 }

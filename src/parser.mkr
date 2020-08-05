@@ -1,5 +1,6 @@
 "use super::lexer;"
 "use super::types;"
+"use super::types::{UntypedASTMain, UntypedAST};"
 
 
 grammar;
@@ -27,6 +28,8 @@ extern {
     Tok_SEMICOLON     => "(lexer::TokenKind::SEMICOLON        , _)",
     Tok_COLON         => "(lexer::TokenKind::COLON            , _)",
     Tok_COMMA         => "(lexer::TokenKind::COMMA            , _)",
+    Tok_LETNONREC     => "(lexer::TokenKind::LETNONREC        , _)",
+    Tok_IN            => "(lexer::TokenKind::IN               , _)",
     Tok_TRUE          => "(lexer::TokenKind::TRUE             , _)",
     Tok_FALSE         => "(lexer::TokenKind::FALSE            , _)",
     Tok_IF            => "(lexer::TokenKind::IF               , _)",
@@ -35,18 +38,34 @@ extern {
   }
 }
 
-pub main: "types::UntypedAST" = {
-  <utast: xif> <_: Tok_EOF> => {"utast"},
+pub main: "UntypedAST" = {
+  <utast: nxif> <_: Tok_EOF> => {"utast"},
 };
 
 
-xif: "types::UntypedAST" = {
+//nxtoplevel: "types::UntypedAST" = {
+//  <opn: Tok_LETNONREC> <recdec: nxnonrecdec> <subseq: nxtopsubseq> => {},
+//  <utast: nxtopsubseq> => {"utast"},
+//};
+//
+//nxtopsubseq: "types::UntypedAST" = {
+//  <utast: nxtoplevel> => {"utast"},
+//  <_: Tok_EOF> => {"(UntypedASTMain::FinishHeaderFile, Range::dummy())"},
+//  <_: Tok_IN> <utast: "nxlet"> <_: Tok_EOf> => {"utast"},
+//};
+//
+//nxlet: "types::UntypedAST" = {
+//  <tok: Tok_LETNONREC> <recdec: nxnonrecdec> <v1: Tok_IN> <utast: nxlet> =>
+//  <utast: nxif> => {"utast"};
+//};
+
+nxif: "UntypedAST" = {
   <opn: Tok_IF> <utast1: lor> <_: Tok_THEN> <utast2: lor> <_: Tok_ELSE> <utast3: lor> => {"
     let (_,rngs) = opn;
     let (_,rnge) = utast3;
     let rng = rngs.merge(&rnge);
     (
-      types::UntypedASTMain::IfThenElse(
+      UntypedASTMain::IfThenElse(
         Box::new(utast1),
         Box::new(utast2),
         Box::new(utast3)
@@ -59,7 +78,7 @@ xif: "types::UntypedAST" = {
 
 
 //<lor> := <land> <lor_sub>
-lor: "types::UntypedAST" = {
+lor: "UntypedAST" = {
   <utast: land> <utaststr2opt: lor_sub> => {"
     match utaststr2opt {
       None => {utast}
@@ -73,7 +92,7 @@ lor: "types::UntypedAST" = {
 };
 
 //<lor_sub> := BINOP_BAR <land> <lor_sub> | <null>
-lor_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
+lor_sub: "Option<(lexer::Token, UntypedAST)>" = {
   <op: Tok_BINOP_BAR> <utastr: land> <subopt: lor_sub> => {"
     match subopt {
       None => {Some((op, utastr))}
@@ -89,7 +108,7 @@ lor_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
 
 
 //<land> := <leq_lt_gt> <land_sub>
-land: "types::UntypedAST" = {
+land: "UntypedAST" = {
   <utast: leq_lt_gt> <utaststr2opt: land_sub> => {"
     match utaststr2opt {
       None => {utast}
@@ -103,7 +122,7 @@ land: "types::UntypedAST" = {
 };
 
 //<land_sub> := BINOP_AMP <leq_lt_gt> <land_sub> | <null>
-land_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
+land_sub: "Option<(lexer::Token, UntypedAST)>" = {
   <op: Tok_BINOP_AMP> <utastr: leq_lt_gt> <subopt: land_sub> => {"
     match subopt {
       None => {Some((op, utastr))}
@@ -119,7 +138,7 @@ land_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
 
 
 //<leq_lt_gt> := <lhat> <leq_lt_gt_sub>
-leq_lt_gt: "types::UntypedAST" = {
+leq_lt_gt: "UntypedAST" = {
   <utast: lhat> <utaststr2opt: leq_lt_gt_sub> => {"
     match utaststr2opt {
       None => {utast}
@@ -138,7 +157,7 @@ leq_lt_gt: "types::UntypedAST" = {
 // | BINOP_GT <lhat <leq_lt_gtsub>
 // | <null>
 // ;
-leq_lt_gt_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
+leq_lt_gt_sub: "Option<(lexer::Token, UntypedAST)>" = {
   <op: Tok_BINOP_EQ> <utastr: lhat> <subopt: leq_lt_gt_sub> => {"
     match subopt {
       None => {Some((op, utastr))}
@@ -176,7 +195,7 @@ leq_lt_gt_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
 
 
 //<lhat> := <lpl_mi> <land_sub>
-lhat: "types::UntypedAST" = {
+lhat: "UntypedAST" = {
   <utast: lpl_mi> <utaststr2opt: lhat_sub> => {"
     match utaststr2opt {
       None => {utast}
@@ -190,7 +209,7 @@ lhat: "types::UntypedAST" = {
 };
 
 //<lhat_sub> := BINOP_HAT <lpl_mi> <lhat_sub> | <null>
-lhat_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
+lhat_sub: "Option<(lexer::Token, UntypedAST)>" = {
   <op: Tok_BINOP_HAT> <utastr: lpl_mi> <subopt: lhat_sub> => {"
     match subopt {
       None => {Some((op, utastr))}
@@ -205,7 +224,7 @@ lhat_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
 };
 
 //<lpl_mi> := <lti_div> <lpl_mi_sub>
-lpl_mi: "types::UntypedAST" = {
+lpl_mi: "UntypedAST" = {
   <utast: lti_div> <utaststr2opt: lpl_mi_sub> => {"
     match utaststr2opt {
       None => {utast}
@@ -223,7 +242,7 @@ lpl_mi: "types::UntypedAST" = {
 // | BINOP_MINUS <lti_div> <lpl_mi_sub>
 // | <null>
 // ;
-lpl_mi_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
+lpl_mi_sub: "Option<(lexer::Token, UntypedAST)>" = {
   <op: Tok_BINOP_PLUS> <utastr: lti_div> <subopt: lpl_mi_sub> => {"
     match subopt {
       None => {Some((op, utastr))}
@@ -248,7 +267,7 @@ lpl_mi_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
 };
 
 //<lti_div> := <bot> <lti_div_sub>
-lti_div: "types::UntypedAST" = {
+lti_div: "UntypedAST" = {
   <utast: app> <utaststr2opt: lti_div_sub> => {"
     match utaststr2opt {
       None => {utast}
@@ -266,7 +285,7 @@ lti_div: "types::UntypedAST" = {
 // | BINOP_DIVIDES <lti_div> <lti_div_sub>
 // | <null>
 // ;
-lti_div_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
+lti_div_sub: "Option<(lexer::Token, UntypedAST)>" = {
   <op: Tok_BINOP_TIMES> <utastr: bot> <subopt: lti_div_sub> => {"
     match subopt {
       None => {Some((op, utastr))}
@@ -291,7 +310,7 @@ lti_div_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
 };
 
 
-app: "types::UntypedAST" = {
+app: "UntypedAST" = {
   <utast1: bot> <utast2_lst: app_sub> => {"
     let mut v = utast2_lst;
     v.reverse();
@@ -300,7 +319,7 @@ app: "types::UntypedAST" = {
       let (_, rng1) = utast;
       let (_, rng2) = utast2;
       let rng = rng1.merge(&rng2);
-      let new_utast = (types::UntypedASTMain::Apply(
+      let new_utast = (UntypedASTMain::Apply(
         Box::new(utast), Box::new(utast2.clone())
       ), rng);
       utast = new_utast;
@@ -311,7 +330,7 @@ app: "types::UntypedAST" = {
 
 
 // 左結合させたいので、とりあえずリストにして、<app>でforを使って左結合させる
-app_sub: "Vec<types::UntypedAST>" = {
+app_sub: "Vec<UntypedAST>" = {
   <utast1: bot> <utast2_lst: app_sub> => {"
     let mut v = utast2_lst;
     v.push(utast1);
@@ -322,26 +341,26 @@ app_sub: "Vec<types::UntypedAST>" = {
 
 
 
-bot: "types::UntypedAST" = {
+bot: "UntypedAST" = {
   <inttok: Tok_INTCONST> => {"
     let (tok, rng) = inttok;
     let i = lexer::get_i64(tok).unwrap();
-    (types::UntypedASTMain::IntConst(i), rng)"
+    (UntypedASTMain::IntConst(i), rng)"
   },
   <floattok: Tok_FLOATCONST> => {"
     let (tok, rng) = floattok;
     let f = lexer::get_f64(tok).unwrap();
-    (types::UntypedASTMain::FloatConst(f), rng)"
+    (UntypedASTMain::FloatConst(f), rng)"
   },
   <truetok: Tok_TRUE> => {"
     let (_, rng) = truetok;
-    (types::UntypedASTMain::BoolConst(true), rng)"
+    (UntypedASTMain::BoolConst(true), rng)"
   },
   <falsetok: Tok_FALSE> => {"
     let (_, rng) = falsetok;
-    (types::UntypedASTMain::BoolConst(false), rng)"
+    (UntypedASTMain::BoolConst(false), rng)"
   },
-  <opn: Tok_LPAREN> <utast: xif> <cls: Tok_RPAREN> => {"
+  <opn: Tok_LPAREN> <utast: nxif> <cls: Tok_RPAREN> => {"
     let (_, rngo) = opn;
     let (_, rngc) = cls;
     let (main,_) = utast;
@@ -350,7 +369,7 @@ bot: "types::UntypedAST" = {
   <var: Tok_VAR> => {"
     let (vartok, rng) = var;
     let varnm = lexer::get_string(vartok).unwrap();
-    (types::UntypedASTMain::ContentOf(Vec::new(), varnm), rng)"
+    (UntypedASTMain::ContentOf(Vec::new(), varnm), rng)"
   },
 };
 

@@ -4,6 +4,7 @@
 
 use super::lexer;
 use super::types;
+use super::types::{UntypedAST, UntypedASTMain};
 use std::iter::Peekable;
 
 #[derive(Debug, Clone)]
@@ -16,7 +17,7 @@ pub enum ParseError {
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-pub fn parse(tokens: Vec<lexer::Token>) -> Result<types::UntypedAST, ParseError> {
+pub fn parse(tokens: Vec<lexer::Token>) -> Result<UntypedAST, ParseError> {
   let mut tokens = tokens.into_iter().peekable();
   let ret = _parse_fn_main(&mut tokens)?;
   match tokens.next() {
@@ -28,7 +29,7 @@ pub fn parse(tokens: Vec<lexer::Token>) -> Result<types::UntypedAST, ParseError>
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-fn _parse_fn_main<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<types::UntypedAST, ParseError>
+fn _parse_fn_main<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -52,7 +53,7 @@ where
     });
   let main = match code_type? {
     CodeType::Tok1 => {
-      let utast = _parse_fn_xif(tokens)?;
+      let utast = _parse_fn_nxif(tokens)?;
       let _ = _parse_token_Tok_EOF(tokens)?;
       utast
     }
@@ -64,7 +65,7 @@ where
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-fn _parse_fn_xif<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<types::UntypedAST, ParseError>
+fn _parse_fn_nxif<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -100,7 +101,7 @@ where
       let (_, rnge) = utast3;
       let rng = rngs.merge(&rnge);
       (
-        types::UntypedASTMain::IfThenElse(Box::new(utast1), Box::new(utast2), Box::new(utast3)),
+        UntypedASTMain::IfThenElse(Box::new(utast1), Box::new(utast2), Box::new(utast3)),
         rng,
       )
     }
@@ -116,7 +117,7 @@ where
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-fn _parse_fn_lor<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<types::UntypedAST, ParseError>
+fn _parse_fn_lor<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -161,7 +162,7 @@ where
 #[allow(unused_parens)]
 fn _parse_fn_lor_sub<Tokens>(
   tokens: &mut Peekable<Tokens>,
-) -> Result<Option<(lexer::Token, types::UntypedAST)>, ParseError>
+) -> Result<Option<(lexer::Token, UntypedAST)>, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -200,7 +201,7 @@ where
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-fn _parse_fn_land<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<types::UntypedAST, ParseError>
+fn _parse_fn_land<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -245,7 +246,7 @@ where
 #[allow(unused_parens)]
 fn _parse_fn_land_sub<Tokens>(
   tokens: &mut Peekable<Tokens>,
-) -> Result<Option<(lexer::Token, types::UntypedAST)>, ParseError>
+) -> Result<Option<(lexer::Token, UntypedAST)>, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -284,9 +285,7 @@ where
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-fn _parse_fn_leq_lt_gt<Tokens>(
-  tokens: &mut Peekable<Tokens>,
-) -> Result<types::UntypedAST, ParseError>
+fn _parse_fn_leq_lt_gt<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -331,7 +330,7 @@ where
 #[allow(unused_parens)]
 fn _parse_fn_leq_lt_gt_sub<Tokens>(
   tokens: &mut Peekable<Tokens>,
-) -> Result<Option<(lexer::Token, types::UntypedAST)>, ParseError>
+) -> Result<Option<(lexer::Token, UntypedAST)>, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -402,7 +401,7 @@ where
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-fn _parse_fn_lhat<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<types::UntypedAST, ParseError>
+fn _parse_fn_lhat<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -447,7 +446,7 @@ where
 #[allow(unused_parens)]
 fn _parse_fn_lhat_sub<Tokens>(
   tokens: &mut Peekable<Tokens>,
-) -> Result<Option<(lexer::Token, types::UntypedAST)>, ParseError>
+) -> Result<Option<(lexer::Token, UntypedAST)>, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -486,7 +485,7 @@ where
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-fn _parse_fn_lpl_mi<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<types::UntypedAST, ParseError>
+fn _parse_fn_lpl_mi<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -531,7 +530,7 @@ where
 #[allow(unused_parens)]
 fn _parse_fn_lpl_mi_sub<Tokens>(
   tokens: &mut Peekable<Tokens>,
-) -> Result<Option<(lexer::Token, types::UntypedAST)>, ParseError>
+) -> Result<Option<(lexer::Token, UntypedAST)>, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -586,7 +585,7 @@ where
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-fn _parse_fn_lti_div<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<types::UntypedAST, ParseError>
+fn _parse_fn_lti_div<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -631,7 +630,7 @@ where
 #[allow(unused_parens)]
 fn _parse_fn_lti_div_sub<Tokens>(
   tokens: &mut Peekable<Tokens>,
-) -> Result<Option<(lexer::Token, types::UntypedAST)>, ParseError>
+) -> Result<Option<(lexer::Token, UntypedAST)>, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -686,7 +685,7 @@ where
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-fn _parse_fn_app<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<types::UntypedAST, ParseError>
+fn _parse_fn_app<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -720,7 +719,7 @@ where
         let (_, rng2) = utast2;
         let rng = rng1.merge(&rng2);
         let new_utast = (
-          types::UntypedASTMain::Apply(Box::new(utast), Box::new(utast2.clone())),
+          UntypedASTMain::Apply(Box::new(utast), Box::new(utast2.clone())),
           rng,
         );
         utast = new_utast;
@@ -735,9 +734,7 @@ where
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-fn _parse_fn_app_sub<Tokens>(
-  tokens: &mut Peekable<Tokens>,
-) -> Result<Vec<types::UntypedAST>, ParseError>
+fn _parse_fn_app_sub<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Vec<UntypedAST>, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -775,7 +772,7 @@ where
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
-fn _parse_fn_bot<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<types::UntypedAST, ParseError>
+fn _parse_fn_bot<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -807,30 +804,30 @@ where
 
       let (tok, rng) = inttok;
       let i = lexer::get_i64(tok).unwrap();
-      (types::UntypedASTMain::IntConst(i), rng)
+      (UntypedASTMain::IntConst(i), rng)
     }
     CodeType::Tok2 => {
       let floattok = _parse_token_Tok_FLOATCONST(tokens)?;
 
       let (tok, rng) = floattok;
       let f = lexer::get_f64(tok).unwrap();
-      (types::UntypedASTMain::FloatConst(f), rng)
+      (UntypedASTMain::FloatConst(f), rng)
     }
     CodeType::Tok3 => {
       let truetok = _parse_token_Tok_TRUE(tokens)?;
 
       let (_, rng) = truetok;
-      (types::UntypedASTMain::BoolConst(true), rng)
+      (UntypedASTMain::BoolConst(true), rng)
     }
     CodeType::Tok4 => {
       let falsetok = _parse_token_Tok_FALSE(tokens)?;
 
       let (_, rng) = falsetok;
-      (types::UntypedASTMain::BoolConst(false), rng)
+      (UntypedASTMain::BoolConst(false), rng)
     }
     CodeType::Tok5 => {
       let opn = _parse_token_Tok_LPAREN(tokens)?;
-      let utast = _parse_fn_xif(tokens)?;
+      let utast = _parse_fn_nxif(tokens)?;
       let cls = _parse_token_Tok_RPAREN(tokens)?;
 
       let (_, rngo) = opn;
@@ -843,7 +840,7 @@ where
 
       let (vartok, rng) = var;
       let varnm = lexer::get_string(vartok).unwrap();
-      (types::UntypedASTMain::ContentOf(Vec::new(), varnm), rng)
+      (UntypedASTMain::ContentOf(Vec::new(), varnm), rng)
     }
     _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
   };
@@ -1216,6 +1213,40 @@ where
     .ok_or(ParseError::Eof)
     .and_then(|tok| match tok.clone() {
       (lexer::TokenKind::COMMA, _) => Ok(tok),
+      _ => Err(ParseError::UnexpectedToken(tok)),
+    })
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_token_Tok_LETNONREC<Tokens>(
+  tokens: &mut Peekable<Tokens>,
+) -> Result<lexer::Token, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  tokens
+    .next()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok.clone() {
+      (lexer::TokenKind::LETNONREC, _) => Ok(tok),
+      _ => Err(ParseError::UnexpectedToken(tok)),
+    })
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_token_Tok_IN<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<lexer::Token, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  tokens
+    .next()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok.clone() {
+      (lexer::TokenKind::IN, _) => Ok(tok),
       _ => Err(ParseError::UnexpectedToken(tok)),
     })
 }

@@ -25,6 +25,8 @@ pub enum TokenKind {
   SEMICOLON,
   COLON,
   COMMA,
+  LETNONREC,
+  IN,
   TRUE,
   FALSE,
   IF,
@@ -286,7 +288,7 @@ fn skip_spaces(input: &Vec<char>, pos: usize) -> Result<((), usize), LexError> {
 
 // 改行文字が来るまで読み飛ばす
 fn lex_comment(input: &Vec<char>, mut pos: usize) -> ((), usize) {
-  while pos < input.len() && (!(&'\n' == &input[pos])) {
+  while pos < input.len() && &'\n' != &input[pos] {
     pos += 1;
   }
   ((), pos)
@@ -302,6 +304,17 @@ fn lex_identifier(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexEr
   let v_string: String = input[start..end_pos].into_iter().collect();
   let v_str = v_string.as_str();
   match v_str {
+    "let" => Ok((
+      (
+        TokenKind::LETNONREC,
+        types::Range::make_start_end(start, end_pos),
+      ),
+      end_pos,
+    )),
+    "in" => Ok((
+      (TokenKind::IN, types::Range::make_start_end(start, end_pos)),
+      end_pos,
+    )),
     "true" => Ok((
       (
         TokenKind::TRUE,
