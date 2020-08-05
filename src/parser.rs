@@ -35,6 +35,7 @@ where
 {
   enum CodeType {
     Tok1,
+    Tok2,
     Other,
   }
   let code_type = tokens
@@ -48,6 +49,7 @@ where
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
+      (lexer::TokenKind::LETNONREC, _) => Ok(CodeType::Tok2),
 
       _ => Ok(CodeType::Other),
     });
@@ -55,6 +57,174 @@ where
     CodeType::Tok1 => {
       let utast = _parse_fn_nxif(tokens)?;
       let _ = _parse_token_Tok_EOF(tokens)?;
+      utast
+    }
+    CodeType::Tok2 => {
+      let utast = _parse_fn_nxtoplevel(tokens)?;
+      utast
+    }
+    _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
+  };
+  Ok(main)
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_fn_nxtoplevel<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  enum CodeType {
+    Tok1,
+    Other,
+  }
+  let code_type = tokens
+    .peek()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok {
+      (lexer::TokenKind::LETNONREC, _) => Ok(CodeType::Tok1),
+
+      _ => Ok(CodeType::Other),
+    });
+  let main = match code_type? {
+    CodeType::Tok1 => {
+      let opn = _parse_token_Tok_LETNONREC(tokens)?;
+      let recdec = _parse_fn_nxnonrecdec(tokens)?;
+      let subseq = _parse_fn_nxtopsubseq(tokens)?;
+      let (name, utast) = recdec;
+      let (_, opnrng) = opn;
+      let (_, clsrng) = subseq;
+      let rng = opnrng.merge(&clsrng);
+      let main = UntypedASTMain::LetExp(name, Box::new(utast), Box::new(subseq));
+      (main, rng)
+    }
+    _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
+  };
+  Ok(main)
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_fn_nxnonrecdec<Tokens>(
+  tokens: &mut Peekable<Tokens>,
+) -> Result<(String, UntypedAST), ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  enum CodeType {
+    Tok1,
+    Other,
+  }
+  let code_type = tokens
+    .peek()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok {
+      (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
+
+      _ => Ok(CodeType::Other),
+    });
+  let main = match code_type? {
+    CodeType::Tok1 => {
+      let name = _parse_token_Tok_VAR(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (name_token, _) = name;
+      let name_string = lexer::get_string(name_token).unwrap();
+      (name_string, utast)
+    }
+    _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
+  };
+  Ok(main)
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_fn_nxtopsubseq<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  enum CodeType {
+    Tok1,
+    Tok2,
+    Tok3,
+    Other,
+  }
+  let code_type = tokens
+    .peek()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok {
+      (lexer::TokenKind::LETNONREC, _) => Ok(CodeType::Tok1),
+      (lexer::TokenKind::EOF, _) => Ok(CodeType::Tok2),
+      (lexer::TokenKind::IN, _) => Ok(CodeType::Tok3),
+
+      _ => Ok(CodeType::Other),
+    });
+  let main = match code_type? {
+    CodeType::Tok1 => {
+      let utast = _parse_fn_nxtoplevel(tokens)?;
+      utast
+    }
+    CodeType::Tok2 => {
+      let eof = _parse_token_Tok_EOF(tokens)?;
+      let (_, rng) = eof;
+      (UntypedASTMain::FinishHeaderFile, rng)
+    }
+    CodeType::Tok3 => {
+      let _ = _parse_token_Tok_IN(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let _ = _parse_token_Tok_EOF(tokens)?;
+      utast
+    }
+    _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
+  };
+  Ok(main)
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_fn_nxlet<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<UntypedAST, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  enum CodeType {
+    Tok1,
+    Tok2,
+    Other,
+  }
+  let code_type = tokens
+    .peek()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok {
+      (lexer::TokenKind::LETNONREC, _) => Ok(CodeType::Tok1),
+      (lexer::TokenKind::FALSE, _)
+      | (lexer::TokenKind::FLOATCONST(_), _)
+      | (lexer::TokenKind::IF, _)
+      | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LPAREN, _)
+      | (lexer::TokenKind::TRUE, _)
+      | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok2),
+
+      _ => Ok(CodeType::Other),
+    });
+  let main = match code_type? {
+    CodeType::Tok1 => {
+      let opn = _parse_token_Tok_LETNONREC(tokens)?;
+      let recdec = _parse_fn_nxnonrecdec(tokens)?;
+      let _ = _parse_token_Tok_IN(tokens)?;
+      let utast2 = _parse_fn_nxlet(tokens)?;
+      let (name, utast1) = recdec;
+      let (_, opnrng) = opn;
+      let (_, clsrng) = utast2;
+      let rng = opnrng.merge(&clsrng);
+      let main = UntypedASTMain::LetExp(name, Box::new(utast1), Box::new(utast2));
+      (main, rng)
+    }
+    CodeType::Tok2 => {
+      let utast = _parse_fn_nxif(tokens)?;
       utast
     }
     _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
@@ -651,7 +821,7 @@ where
   let main = match code_type? {
     CodeType::Tok1 => {
       let op = _parse_token_Tok_BINOP_TIMES(tokens)?;
-      let utastr = _parse_fn_bot(tokens)?;
+      let utastr = _parse_fn_app(tokens)?;
       let subopt = _parse_fn_lti_div_sub(tokens)?;
 
       match subopt {
@@ -1231,6 +1401,24 @@ where
     .ok_or(ParseError::Eof)
     .and_then(|tok| match tok.clone() {
       (lexer::TokenKind::LETNONREC, _) => Ok(tok),
+      _ => Err(ParseError::UnexpectedToken(tok)),
+    })
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_token_Tok_LETAND<Tokens>(
+  tokens: &mut Peekable<Tokens>,
+) -> Result<lexer::Token, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  tokens
+    .next()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok.clone() {
+      (lexer::TokenKind::LETAND, _) => Ok(tok),
       _ => Err(ParseError::UnexpectedToken(tok)),
     })
 }

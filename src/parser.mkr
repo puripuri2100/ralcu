@@ -29,6 +29,7 @@ extern {
     Tok_COLON         => "(lexer::TokenKind::COLON            , _)",
     Tok_COMMA         => "(lexer::TokenKind::COMMA            , _)",
     Tok_LETNONREC     => "(lexer::TokenKind::LETNONREC        , _)",
+    Tok_LETAND        => "(lexer::TokenKind::LETAND           , _)",
     Tok_IN            => "(lexer::TokenKind::IN               , _)",
     Tok_TRUE          => "(lexer::TokenKind::TRUE             , _)",
     Tok_FALSE         => "(lexer::TokenKind::FALSE            , _)",
@@ -39,25 +40,53 @@ extern {
 }
 
 pub main: "UntypedAST" = {
+  <utast: nxtoplevel> => {"utast"},
   <utast: nxif> <_: Tok_EOF> => {"utast"},
 };
 
 
-//nxtoplevel: "types::UntypedAST" = {
-//  <opn: Tok_LETNONREC> <recdec: nxnonrecdec> <subseq: nxtopsubseq> => {},
-//  <utast: nxtopsubseq> => {"utast"},
-//};
-//
-//nxtopsubseq: "types::UntypedAST" = {
-//  <utast: nxtoplevel> => {"utast"},
-//  <_: Tok_EOF> => {"(UntypedASTMain::FinishHeaderFile, Range::dummy())"},
-//  <_: Tok_IN> <utast: "nxlet"> <_: Tok_EOf> => {"utast"},
-//};
-//
-//nxlet: "types::UntypedAST" = {
-//  <tok: Tok_LETNONREC> <recdec: nxnonrecdec> <v1: Tok_IN> <utast: nxlet> =>
-//  <utast: nxif> => {"utast"};
-//};
+
+nxtoplevel: "UntypedAST" = {
+  <opn: Tok_LETNONREC> <recdec: nxnonrecdec> <subseq: nxtopsubseq> => {
+    "let (name, utast) = recdec;
+    let (_, opnrng) = opn;
+    let (_, clsrng) = subseq;
+    let rng = opnrng.merge(&clsrng);
+    let main = UntypedASTMain::LetExp(name, Box::new(utast), Box::new(subseq));
+    (main, rng)"
+  },
+};
+
+nxnonrecdec: "(String, UntypedAST)" = {
+  <name: Tok_VAR> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "let (name_token, _) = name;
+    let name_string = lexer::get_string(name_token).unwrap();
+    (name_string, utast)"
+  }
+};
+
+
+nxtopsubseq: "UntypedAST" = {
+  <utast: nxtoplevel>=> {"utast"},
+  <eof: Tok_EOF> => {
+    "let (_,rng) = eof;
+    (UntypedASTMain::FinishHeaderFile, rng)"
+  },
+  <_: Tok_IN> <utast: nxlet> <_: Tok_EOF> => {"utast"},
+};
+
+nxlet: "UntypedAST" = {
+  <opn: Tok_LETNONREC> <recdec: nxnonrecdec> <_: Tok_IN> <utast2: nxlet> => {
+    "let (name, utast1) = recdec;
+    let (_, opnrng) = opn;
+    let (_, clsrng) = utast2;
+    let rng = opnrng.merge(&clsrng);
+    let main = UntypedASTMain::LetExp(name, Box::new(utast1), Box::new(utast2));
+    (main, rng)"
+  },
+  <utast: nxif> => {"utast"},
+};
+
 
 nxif: "UntypedAST" = {
   <opn: Tok_IF> <utast1: lor> <_: Tok_THEN> <utast2: lor> <_: Tok_ELSE> <utast3: lor> => {"
@@ -286,7 +315,7 @@ lti_div: "UntypedAST" = {
 // | <null>
 // ;
 lti_div_sub: "Option<(lexer::Token, UntypedAST)>" = {
-  <op: Tok_BINOP_TIMES> <utastr: bot> <subopt: lti_div_sub> => {"
+  <op: Tok_BINOP_TIMES> <utastr: app> <subopt: lti_div_sub> => {"
     match subopt {
       None => {Some((op, utastr))}
       Some((op2, utastr2)) => {

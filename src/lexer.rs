@@ -26,6 +26,7 @@ pub enum TokenKind {
   COLON,
   COMMA,
   LETNONREC,
+  LETAND,
   IN,
   TRUE,
   FALSE,
@@ -299,7 +300,7 @@ fn lex_comment(input: &Vec<char>, mut pos: usize) -> ((), usize) {
 fn lex_identifier(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexError> {
   let start = pos;
   let end_pos = recognize_many(input, pos + 1, |c| {
-    is_small(&c) || is_capital(&c) || is_digit(&c) || c == '_'
+    is_small(&c) || is_capital(&c) || is_digit(&c) || c == '-'
   });
   let v_string: String = input[start..end_pos].into_iter().collect();
   let v_str = v_string.as_str();
@@ -307,6 +308,13 @@ fn lex_identifier(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexEr
     "let" => Ok((
       (
         TokenKind::LETNONREC,
+        types::Range::make_start_end(start, end_pos),
+      ),
+      end_pos,
+    )),
+    "and" => Ok((
+      (
+        TokenKind::LETAND,
         types::Range::make_start_end(start, end_pos),
       ),
       end_pos,

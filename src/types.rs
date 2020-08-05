@@ -37,6 +37,9 @@ pub enum UntypedASTMain {
   Apply(Box<UntypedAST>, Box<UntypedAST>),
   BinApply((String, Range), Box<UntypedAST>, Box<UntypedAST>),
   ContentOf(Vec<String>, String),
+  LetExp(String, Box<UntypedAST>, Box<UntypedAST>),
+  FunExp(String, Box<UntypedAST>),
+  FinishHeaderFile,
 }
 
 pub type UntypedAST = (UntypedASTMain, Range);

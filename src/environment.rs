@@ -16,7 +16,7 @@ where
 {
   let mut env_mut = env;
   env_mut.reverse();
-  let a = env_mut.iter().find(|(y, v)| &x == y);
+  let a = env_mut.iter().find(|(y, _)| &x == y);
   match a {
     None => None,
     Some((_, v)) => Some(v.clone()),

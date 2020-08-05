@@ -33,12 +33,13 @@ pub fn apply_prim(op: String, arg1: Dnval, arg2: Dnval) -> Dnval {
 }
 
 pub fn eval_exp(env: environment::Env<Exval>, ast: types::UntypedAST) -> Dnval {
+  use types::UntypedASTMain;
   let (astmain, _) = ast;
   match astmain {
-    types::UntypedASTMain::IntConst(i) => Exval::IntV(i),
-    types::UntypedASTMain::FloatConst(f) => Exval::FloatV(f),
-    types::UntypedASTMain::BoolConst(b) => Exval::BoolV(b),
-    types::UntypedASTMain::IfThenElse(exp1, exp2, exp3) => {
+    UntypedASTMain::IntConst(i) => Exval::IntV(i),
+    UntypedASTMain::FloatConst(f) => Exval::FloatV(f),
+    UntypedASTMain::BoolConst(b) => Exval::BoolV(b),
+    UntypedASTMain::IfThenElse(exp1, exp2, exp3) => {
       let test = eval_exp(env.clone(), *exp1);
       match test {
         Exval::BoolV(true) => eval_exp(env, *exp2),
@@ -46,13 +47,18 @@ pub fn eval_exp(env: environment::Env<Exval>, ast: types::UntypedAST) -> Dnval {
         _ => panic!(),
       }
     }
-    types::UntypedASTMain::ContentOf(_, x) => environment::lookup(x, env).unwrap(),
-    types::UntypedASTMain::BinApply(op, exp1, exp2) => {
+    UntypedASTMain::ContentOf(_, x) => environment::lookup(x, env).unwrap(),
+    UntypedASTMain::BinApply(op, exp1, exp2) => {
       let (op_string, _) = op;
       let arg1 = eval_exp(env.clone(), *exp1);
       let arg2 = eval_exp(env.clone(), *exp2);
       apply_prim(op_string, arg1, arg2)
     }
+    UntypedASTMain::LetExp(id, exp1, exp2) => {
+      let value = eval_exp(env.clone(), *exp1);
+      eval_exp(environment::extend(id, value, env), *exp2)
+    }
+    UntypedASTMain::FinishHeaderFile => panic!(),
     _ => panic!(),
   }
 }
