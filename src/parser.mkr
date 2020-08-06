@@ -64,7 +64,63 @@ nxnonrecdec: "(String, UntypedAST)" = {
     "let (name_token, _) = name;
     let name_string = lexer::get_string(name_token).unwrap();
     (name_string, utast)"
-  }
+  },
+  <_: Tok_LPAREN> <data:nxnonrecdec_sub_binop> => {"data"},
+};
+
+nxnonrecdec_sub_binop: "(String, UntypedAST)" = {
+  <binop: Tok_BINOP_AMP> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "let (name_token, _) = binop;
+    let name_string = lexer::get_string(name_token).unwrap();
+    (name_string, utast)"
+  },
+  <binop: Tok_BINOP_BAR> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "let (name_token, _) = binop;
+    let name_string = lexer::get_string(name_token).unwrap();
+    (name_string, utast)"
+  },
+  <binop: Tok_BINOP_DIVIDES> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "let (name_token, _) = binop;
+    let name_string = lexer::get_string(name_token).unwrap();
+    (name_string, utast)"
+  },
+  <binop: Tok_BINOP_EQ> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "let (name_token, _) = binop;
+    let name_string = lexer::get_string(name_token).unwrap();
+    (name_string, utast)"
+  },
+  <binop: Tok_BINOP_GT> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "let (name_token, _) = binop;
+    let name_string = lexer::get_string(name_token).unwrap();
+    (name_string, utast)"
+  },
+  <binop: Tok_BINOP_HAT> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "let (name_token, _) = binop;
+    let name_string = lexer::get_string(name_token).unwrap();
+    (name_string, utast)"
+  },
+  
+  <binop: Tok_BINOP_LT> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "let (name_token, _) = binop;
+    let name_string = lexer::get_string(name_token).unwrap();
+    (name_string, utast)"
+  },
+  
+  <binop: Tok_BINOP_MINUS> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "let (name_token, _) = binop;
+    let name_string = lexer::get_string(name_token).unwrap();
+    (name_string, utast)"
+  },
+  <binop: Tok_BINOP_PLUS> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "let (name_token, _) = binop;
+    let name_string = lexer::get_string(name_token).unwrap();
+    (name_string, utast)"
+  },
+  <binop: Tok_BINOP_TIMES> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "let (name_token, _) = binop;
+    let name_string = lexer::get_string(name_token).unwrap();
+    (name_string, utast)"
+  },
 };
 
 

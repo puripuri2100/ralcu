@@ -466,7 +466,7 @@ fn lex_binop_divides(input: &Vec<char>, pos: usize) -> Result<(Token, usize), Le
   let bin_string: String = input[start..end].into_iter().collect();
   Ok((
     (
-      TokenKind::BINOP_TIMES(bin_string),
+      TokenKind::BINOP_DIVIDES(bin_string),
       types::Range::make_start_end(start, end),
     ),
     end,
@@ -481,7 +481,7 @@ fn lex_binop_plus(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexEr
   let bin_string: String = input[start..end].into_iter().collect();
   Ok((
     (
-      TokenKind::BINOP_TIMES(bin_string),
+      TokenKind::BINOP_PLUS(bin_string),
       types::Range::make_start_end(start, end),
     ),
     end,
@@ -496,7 +496,7 @@ fn lex_binop_minus(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexE
   let bin_string: String = input[start..end].into_iter().collect();
   Ok((
     (
-      TokenKind::BINOP_TIMES(bin_string),
+      TokenKind::BINOP_MINUS(bin_string),
       types::Range::make_start_end(start, end),
     ),
     end,
@@ -511,7 +511,7 @@ fn lex_binop_hat(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexErr
   let bin_string: String = input[start..end].into_iter().collect();
   Ok((
     (
-      TokenKind::BINOP_TIMES(bin_string),
+      TokenKind::BINOP_HAT(bin_string),
       types::Range::make_start_end(start, end),
     ),
     end,
@@ -526,7 +526,7 @@ fn lex_binop_amp(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexErr
   let bin_string: String = input[start..end].into_iter().collect();
   Ok((
     (
-      TokenKind::BINOP_TIMES(bin_string),
+      TokenKind::BINOP_AMP(bin_string),
       types::Range::make_start_end(start, end),
     ),
     end,
@@ -541,7 +541,7 @@ fn lex_binop_bar(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexErr
   let bin_string: String = input[start..end].into_iter().collect();
   Ok((
     (
-      TokenKind::BINOP_TIMES(bin_string),
+      TokenKind::BINOP_BAR(bin_string),
       types::Range::make_start_end(start, end),
     ),
     end,
@@ -556,7 +556,7 @@ fn lex_binop_gt(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexErro
   let bin_string: String = input[start..end].into_iter().collect();
   Ok((
     (
-      TokenKind::BINOP_TIMES(bin_string),
+      TokenKind::BINOP_GT(bin_string),
       types::Range::make_start_end(start, end),
     ),
     end,
@@ -571,7 +571,7 @@ fn lex_binop_lt(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexErro
   let bin_string: String = input[start..end].into_iter().collect();
   Ok((
     (
-      TokenKind::BINOP_TIMES(bin_string),
+      TokenKind::BINOP_LT(bin_string),
       types::Range::make_start_end(start, end),
     ),
     end,
@@ -586,7 +586,7 @@ fn lex_binop_eq(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexErro
   let bin_string: String = input[start..end].into_iter().collect();
   Ok((
     (
-      TokenKind::BINOP_TIMES(bin_string),
+      TokenKind::BINOP_EQ(bin_string),
       types::Range::make_start_end(start, end),
     ),
     end,

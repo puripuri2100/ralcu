@@ -133,6 +133,16 @@ fn main() {
     g 3 (f 7) 5
   ";
   a(s);
+  let s = "
+    let (&&) = fun x b -> x in
+    4 && 3
+  ";
+  a(s);
+  let s = "
+    let (<) = fun x y -> y > x in
+    4 < 3
+  ";
+  a(s);
   //b("e1 e2 + e3");
   //b("e1 + e2 e3");
   //let s = "a b c d";

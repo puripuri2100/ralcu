@@ -116,6 +116,7 @@ where
 {
   enum CodeType {
     Tok1,
+    Tok2,
     Other,
   }
   let code_type = tokens
@@ -123,6 +124,7 @@ where
     .ok_or(ParseError::Eof)
     .and_then(|tok| match tok {
       (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
+      (lexer::TokenKind::LPAREN, _) => Ok(CodeType::Tok2),
 
       _ => Ok(CodeType::Other),
     });
@@ -132,6 +134,146 @@ where
       let _ = _parse_token_Tok_DEF_EQ(tokens)?;
       let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = name;
+      let name_string = lexer::get_string(name_token).unwrap();
+      (name_string, utast)
+    }
+    CodeType::Tok2 => {
+      let _ = _parse_token_Tok_LPAREN(tokens)?;
+      let data = _parse_fn_nxnonrecdec_sub_binop(tokens)?;
+      data
+    }
+    _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
+  };
+  Ok(main)
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_fn_nxnonrecdec_sub_binop<Tokens>(
+  tokens: &mut Peekable<Tokens>,
+) -> Result<(String, UntypedAST), ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  enum CodeType {
+    Tok1,
+    Tok2,
+    Tok3,
+    Tok4,
+    Tok5,
+    Tok6,
+    Tok7,
+    Tok8,
+    Tok9,
+    Tok10,
+    Other,
+  }
+  let code_type = tokens
+    .peek()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok {
+      (lexer::TokenKind::BINOP_AMP(_), _) => Ok(CodeType::Tok1),
+      (lexer::TokenKind::BINOP_BAR(_), _) => Ok(CodeType::Tok2),
+      (lexer::TokenKind::BINOP_DIVIDES(_), _) => Ok(CodeType::Tok3),
+      (lexer::TokenKind::BINOP_EQ(_), _) => Ok(CodeType::Tok4),
+      (lexer::TokenKind::BINOP_GT(_), _) => Ok(CodeType::Tok5),
+      (lexer::TokenKind::BINOP_HAT(_), _) => Ok(CodeType::Tok6),
+      (lexer::TokenKind::BINOP_LT(_), _) => Ok(CodeType::Tok7),
+      (lexer::TokenKind::BINOP_MINUS(_), _) => Ok(CodeType::Tok8),
+      (lexer::TokenKind::BINOP_PLUS(_), _) => Ok(CodeType::Tok9),
+      (lexer::TokenKind::BINOP_TIMES(_), _) => Ok(CodeType::Tok10),
+
+      _ => Ok(CodeType::Other),
+    });
+  let main = match code_type? {
+    CodeType::Tok1 => {
+      let binop = _parse_token_Tok_BINOP_AMP(tokens)?;
+      let _ = _parse_token_Tok_RPAREN(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (name_token, _) = binop;
+      let name_string = lexer::get_string(name_token).unwrap();
+      (name_string, utast)
+    }
+    CodeType::Tok2 => {
+      let binop = _parse_token_Tok_BINOP_BAR(tokens)?;
+      let _ = _parse_token_Tok_RPAREN(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (name_token, _) = binop;
+      let name_string = lexer::get_string(name_token).unwrap();
+      (name_string, utast)
+    }
+    CodeType::Tok3 => {
+      let binop = _parse_token_Tok_BINOP_DIVIDES(tokens)?;
+      let _ = _parse_token_Tok_RPAREN(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (name_token, _) = binop;
+      let name_string = lexer::get_string(name_token).unwrap();
+      (name_string, utast)
+    }
+    CodeType::Tok4 => {
+      let binop = _parse_token_Tok_BINOP_EQ(tokens)?;
+      let _ = _parse_token_Tok_RPAREN(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (name_token, _) = binop;
+      let name_string = lexer::get_string(name_token).unwrap();
+      (name_string, utast)
+    }
+    CodeType::Tok5 => {
+      let binop = _parse_token_Tok_BINOP_GT(tokens)?;
+      let _ = _parse_token_Tok_RPAREN(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (name_token, _) = binop;
+      let name_string = lexer::get_string(name_token).unwrap();
+      (name_string, utast)
+    }
+    CodeType::Tok6 => {
+      let binop = _parse_token_Tok_BINOP_HAT(tokens)?;
+      let _ = _parse_token_Tok_RPAREN(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (name_token, _) = binop;
+      let name_string = lexer::get_string(name_token).unwrap();
+      (name_string, utast)
+    }
+    CodeType::Tok7 => {
+      let binop = _parse_token_Tok_BINOP_LT(tokens)?;
+      let _ = _parse_token_Tok_RPAREN(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (name_token, _) = binop;
+      let name_string = lexer::get_string(name_token).unwrap();
+      (name_string, utast)
+    }
+    CodeType::Tok8 => {
+      let binop = _parse_token_Tok_BINOP_MINUS(tokens)?;
+      let _ = _parse_token_Tok_RPAREN(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (name_token, _) = binop;
+      let name_string = lexer::get_string(name_token).unwrap();
+      (name_string, utast)
+    }
+    CodeType::Tok9 => {
+      let binop = _parse_token_Tok_BINOP_PLUS(tokens)?;
+      let _ = _parse_token_Tok_RPAREN(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (name_token, _) = binop;
+      let name_string = lexer::get_string(name_token).unwrap();
+      (name_string, utast)
+    }
+    CodeType::Tok10 => {
+      let binop = _parse_token_Tok_BINOP_TIMES(tokens)?;
+      let _ = _parse_token_Tok_RPAREN(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (name_token, _) = binop;
       let name_string = lexer::get_string(name_token).unwrap();
       (name_string, utast)
     }

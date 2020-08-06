@@ -54,8 +54,6 @@ pub fn string_of_exval(exval: Dnval) -> String {
   }
 }
 
-
-
 fn get_primitive_exval(id: String) -> Option<Dnval> {
   let primitive_vec = vec![
     (
@@ -65,6 +63,10 @@ fn get_primitive_exval(id: String) -> Option<Dnval> {
     (
       "sin".to_owned(),
       Exval::PrimitiveV("sin".to_owned(), 1, Vec::new()),
+    ),
+    (
+      "not".to_owned(),
+      Exval::PrimitiveV("not".to_owned(), 1, Vec::new()),
     ),
     (
       "int".to_owned(),
@@ -91,9 +93,48 @@ fn def_primitive(id: String, argvec: Vec<Dnval>) -> Option<Dnval> {
       let y = get_exval_int(argvec[1].clone()).unwrap();
       Some(make_exval_int(x + y))
     }
+    "+." => {
+      let x = get_exval_float(argvec[0].clone()).unwrap();
+      let y = get_exval_float(argvec[1].clone()).unwrap();
+      Some(make_exval_float(x + y))
+    }
+    "*" => {
+      let x = get_exval_int(argvec[0].clone()).unwrap();
+      let y = get_exval_int(argvec[1].clone()).unwrap();
+      Some(make_exval_int(x * y))
+    }
+    "*." => {
+      let x = get_exval_float(argvec[0].clone()).unwrap();
+      let y = get_exval_float(argvec[1].clone()).unwrap();
+      Some(make_exval_float(x * y))
+    }
+    ">" => {
+      let x = get_exval_int(argvec[0].clone()).unwrap();
+      let y = get_exval_int(argvec[1].clone()).unwrap();
+      Some(make_exval_bool(x > y))
+    }
+    ">." => {
+      let x = get_exval_float(argvec[0].clone()).unwrap();
+      let y = get_exval_float(argvec[1].clone()).unwrap();
+      Some(make_exval_bool(x > y))
+    }
+    "<" => {
+      let x = get_exval_int(argvec[0].clone()).unwrap();
+      let y = get_exval_int(argvec[1].clone()).unwrap();
+      Some(make_exval_bool(x < y))
+    }
+    "<." => {
+      let x = get_exval_float(argvec[0].clone()).unwrap();
+      let y = get_exval_float(argvec[1].clone()).unwrap();
+      Some(make_exval_bool(x < y))
+    }
     "sin" => {
       let x = get_exval_float(argvec[0].clone()).unwrap();
       Some(make_exval_float(x.sin()))
+    }
+    "not" => {
+      let x = get_exval_bool(argvec[0].clone()).unwrap();
+      Some(make_exval_bool(!x))
     }
     "int" => {
       let x = get_exval_float(argvec[0].clone()).unwrap();
@@ -106,21 +147,6 @@ fn def_primitive(id: String, argvec: Vec<Dnval>) -> Option<Dnval> {
     _ => None,
   }
 }
-
-fn apply_prim(op: String, arg1: Dnval, arg2: Dnval) -> Dnval {
-  match (op.as_str(), arg1, arg2) {
-    ("+", Exval::IntV(i1), Exval::IntV(i2)) => make_exval_int(i1 + i2),
-    ("+.", Exval::FloatV(f1), Exval::FloatV(f2)) => make_exval_float(f1 + f2),
-    ("*", Exval::IntV(i1), Exval::IntV(i2)) => make_exval_int(i1 * i2),
-    ("*.", Exval::FloatV(f1), Exval::FloatV(f2)) => make_exval_float(f1 * f2),
-    (">", Exval::IntV(i1), Exval::IntV(i2)) => make_exval_bool(i1 > i2),
-    ("<", Exval::IntV(i1), Exval::IntV(i2)) => make_exval_bool(i1 < i2),
-    (">.", Exval::FloatV(f1), Exval::FloatV(f2)) => make_exval_bool(f1 > f2),
-    ("<.", Exval::FloatV(f1), Exval::FloatV(f2)) => make_exval_bool(f1 < f2),
-    _ => panic!(),
-  }
-}
-
 
 pub fn eval_exp(env: environment::Env<Dnval>, ast: types::UntypedAST) -> Dnval {
   use types::UntypedASTMain;
@@ -145,7 +171,23 @@ pub fn eval_exp(env: environment::Env<Dnval>, ast: types::UntypedAST) -> Dnval {
       let (op_string, _) = op;
       let arg1 = eval_exp(env.clone(), *exp1);
       let arg2 = eval_exp(env.clone(), *exp2);
-      apply_prim(op_string, arg1, arg2)
+      match environment::lookup(op_string.clone(), env.clone()) {
+        Some(e) => match e {
+          Exval::ProcV(id, body, env2) => {
+            let newenv = environment::extend(id, arg1, env2);
+            match eval_exp(newenv, body) {
+              Exval::ProcV(id, body2, env3) => {
+                let newenv = environment::extend(id, arg2, env3);
+                eval_exp(newenv, body2)
+              }
+              _ => panic!(),
+            }
+          }
+          _ => panic!(),
+        },
+        None => def_primitive(op_string, vec![arg1, arg2]).unwrap(), //PrimitiveVを返す
+      }
+      //apply_prim(op_string, arg1, arg2)
     }
     UntypedASTMain::LetExp(id, exp1, exp2) => {
       let value = eval_exp(env.clone(), *exp1);
@@ -174,7 +216,9 @@ pub fn eval_exp(env: environment::Env<Dnval>, ast: types::UntypedAST) -> Dnval {
             if argvec.len() == len {
               //評価
               def_primitive(id, argvec).unwrap()
-            } else {newval}
+            } else {
+              newval
+            }
           }
         }
         _ => funval,
