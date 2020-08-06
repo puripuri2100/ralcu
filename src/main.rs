@@ -62,11 +62,20 @@ fn main() {
     let a3 = 4 in
   a1 + a2
   in
-  a
+  a + x + y * z
   ";
   a(s);
-  b("e1 e2 + e3");
-  b("e1 + e2 e3");
+  let s = "
+  let f =
+    let x = 2 in
+    let addx = fun y -> x + y in
+    addx
+  in
+  f 4
+  ";
+  a(s);
+  //b("e1 e2 + e3");
+  //b("e1 + e2 e3");
   //let s = "a b c d";
   //a(s);
   //  let s = "5 + int(5.6)";
@@ -104,15 +113,6 @@ fn a(s: &str) {
 
 #[allow(dead_code)]
 fn b(s: &str) {
-  let env = environment::extend(
-    "i".to_owned(),
-    eval::Exval::IntV(1),
-    environment::extend(
-      "v".to_owned(),
-      eval::Exval::IntV(5),
-      environment::extend("x".to_owned(), eval::Exval::IntV(10), environment::empty()),
-    ),
-  );
   let tokens = lexer::lex(s).unwrap();
   let ast_res = parser::parse(tokens);
   println!("{:?}", ast_res);

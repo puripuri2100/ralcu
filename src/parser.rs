@@ -46,6 +46,7 @@ where
       | (lexer::TokenKind::FLOATCONST(_), _)
       | (lexer::TokenKind::IF, _)
       | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LAMBDA, _)
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
@@ -204,6 +205,7 @@ where
       | (lexer::TokenKind::FLOATCONST(_), _)
       | (lexer::TokenKind::IF, _)
       | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LAMBDA, _)
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok2),
@@ -252,6 +254,7 @@ where
       (lexer::TokenKind::FALSE, _)
       | (lexer::TokenKind::FLOATCONST(_), _)
       | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LAMBDA, _)
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok2),
@@ -302,6 +305,7 @@ where
       (lexer::TokenKind::FALSE, _)
       | (lexer::TokenKind::FLOATCONST(_), _)
       | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LAMBDA, _)
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
@@ -386,6 +390,7 @@ where
       (lexer::TokenKind::FALSE, _)
       | (lexer::TokenKind::FLOATCONST(_), _)
       | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LAMBDA, _)
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
@@ -470,6 +475,7 @@ where
       (lexer::TokenKind::FALSE, _)
       | (lexer::TokenKind::FLOATCONST(_), _)
       | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LAMBDA, _)
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
@@ -586,6 +592,7 @@ where
       (lexer::TokenKind::FALSE, _)
       | (lexer::TokenKind::FLOATCONST(_), _)
       | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LAMBDA, _)
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
@@ -670,6 +677,7 @@ where
       (lexer::TokenKind::FALSE, _)
       | (lexer::TokenKind::FLOATCONST(_), _)
       | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LAMBDA, _)
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
@@ -770,6 +778,7 @@ where
       (lexer::TokenKind::FALSE, _)
       | (lexer::TokenKind::FLOATCONST(_), _)
       | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LAMBDA, _)
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
@@ -870,6 +879,7 @@ where
       (lexer::TokenKind::FALSE, _)
       | (lexer::TokenKind::FLOATCONST(_), _)
       | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LAMBDA, _)
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
@@ -919,6 +929,7 @@ where
       (lexer::TokenKind::FALSE, _)
       | (lexer::TokenKind::FLOATCONST(_), _)
       | (lexer::TokenKind::INTCONST(_), _)
+      | (lexer::TokenKind::LAMBDA, _)
       | (lexer::TokenKind::LPAREN, _)
       | (lexer::TokenKind::TRUE, _)
       | (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
@@ -953,6 +964,7 @@ where
     Tok4,
     Tok5,
     Tok6,
+    Tok7,
     Other,
   }
   let code_type = tokens
@@ -965,6 +977,7 @@ where
       (lexer::TokenKind::FALSE, _) => Ok(CodeType::Tok4),
       (lexer::TokenKind::LPAREN, _) => Ok(CodeType::Tok5),
       (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok6),
+      (lexer::TokenKind::LAMBDA, _) => Ok(CodeType::Tok7),
 
       _ => Ok(CodeType::Other),
     });
@@ -1011,6 +1024,18 @@ where
       let (vartok, rng) = var;
       let varnm = lexer::get_string(vartok).unwrap();
       (UntypedASTMain::ContentOf(Vec::new(), varnm), rng)
+    }
+    CodeType::Tok7 => {
+      let opn = _parse_token_Tok_LAMBDA(tokens)?;
+      let var = _parse_token_Tok_VAR(tokens)?;
+      let _ = _parse_token_Tok_ARROW(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+      let (_, opnrng) = opn;
+      let (_, clsrng) = utast;
+      let (idtok, _) = var;
+      let idstring = lexer::get_string(idtok).unwrap();
+      let rng = opnrng.merge(&clsrng);
+      (UntypedASTMain::FunExp(idstring, Box::new(utast)), rng)
     }
     _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
   };
@@ -1435,6 +1460,40 @@ where
     .ok_or(ParseError::Eof)
     .and_then(|tok| match tok.clone() {
       (lexer::TokenKind::IN, _) => Ok(tok),
+      _ => Err(ParseError::UnexpectedToken(tok)),
+    })
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_token_Tok_LAMBDA<Tokens>(
+  tokens: &mut Peekable<Tokens>,
+) -> Result<lexer::Token, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  tokens
+    .next()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok.clone() {
+      (lexer::TokenKind::LAMBDA, _) => Ok(tok),
+      _ => Err(ParseError::UnexpectedToken(tok)),
+    })
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_token_Tok_ARROW<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<lexer::Token, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  tokens
+    .next()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok.clone() {
+      (lexer::TokenKind::ARROW, _) => Ok(tok),
       _ => Err(ParseError::UnexpectedToken(tok)),
     })
 }

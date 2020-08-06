@@ -28,6 +28,8 @@ pub enum TokenKind {
   LETNONREC,
   LETAND,
   IN,
+  LAMBDA,
+  ARROW,
   TRUE,
   FALSE,
   IF,
@@ -186,8 +188,7 @@ fn lex_program(input: &Vec<char>, pos: usize) -> Result<(Vec<Token>, usize), Lex
       }
 
       // アルファベットと数字と'_'が続く限りvarへ
-      '_' => lex_a_token!(lex_identifier(input, pos)),
-
+      //'_' => lex_a_token!(lex_identifier(input, pos)),
       ':' => {
         lex_a_token!(lex_colon(pos));
       }
@@ -221,11 +222,23 @@ fn lex_program(input: &Vec<char>, pos: usize) -> Result<(Vec<Token>, usize), Lex
       }
 
       // 次の文字が数字か'.'ならintかfloat
+      // 次の文字が'>'で、その次の文字がbinopでなかったらarrow
       // それ以外ならbinop_minus
       '-' => match input.get(pos + 1) {
         Some(v) => {
           if is_digit(v) || &'.' == v {
             lex_a_token!(lex_int_or_float(input, pos))
+          } else if &'>' == v {
+            match input.get(pos + 2) {
+              None => lex_a_token!(lex_arrow(pos)),
+              Some(v2) => {
+                if is_opsymbol(v2) {
+                  lex_a_token!(lex_binop_minus(input, pos))
+                } else {
+                  lex_a_token!(lex_arrow(pos))
+                }
+              }
+            }
           } else {
             lex_a_token!(lex_binop_minus(input, pos))
           }
@@ -323,6 +336,13 @@ fn lex_identifier(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexEr
       (TokenKind::IN, types::Range::make_start_end(start, end_pos)),
       end_pos,
     )),
+    "fun" => Ok((
+      (
+        TokenKind::LAMBDA,
+        types::Range::make_start_end(start, end_pos),
+      ),
+      end_pos,
+    )),
     "true" => Ok((
       (
         TokenKind::TRUE,
@@ -382,13 +402,14 @@ fn lex_constructor(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexE
   ))
 }
 
-//EOF,
-//DEF_EQ
-//LPAREN,
-//RPAREN,
-//SEMICOLON,
-//COLON,
-//COMMA,
+// EOF,
+// DEF_EQ
+// LPAREN,
+// RPAREN,
+// SEMICOLON,
+// COLON,
+// COMMA,
+// ARROW,
 
 fn lex_eof(pos: usize) -> Result<(Token, usize), LexError> {
   Ok(((TokenKind::EOF, types::Range::make(pos, 1)), pos + 1))
@@ -416,6 +437,10 @@ fn lex_colon(pos: usize) -> Result<(Token, usize), LexError> {
 
 fn lex_comma(pos: usize) -> Result<(Token, usize), LexError> {
   Ok(((TokenKind::COMMA, types::Range::make(pos, 1)), pos + 1))
+}
+
+fn lex_arrow(pos: usize) -> Result<(Token, usize), LexError> {
+  Ok(((TokenKind::ARROW, types::Range::make(pos, 2)), pos + 2))
 }
 
 // `*` から始まる記号群

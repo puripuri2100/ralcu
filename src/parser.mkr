@@ -31,6 +31,8 @@ extern {
     Tok_LETNONREC     => "(lexer::TokenKind::LETNONREC        , _)",
     Tok_LETAND        => "(lexer::TokenKind::LETAND           , _)",
     Tok_IN            => "(lexer::TokenKind::IN               , _)",
+    Tok_LAMBDA        => "(lexer::TokenKind::LAMBDA           , _)",
+    Tok_ARROW         => "(lexer::TokenKind::ARROW            , _)",
     Tok_TRUE          => "(lexer::TokenKind::TRUE             , _)",
     Tok_FALSE         => "(lexer::TokenKind::FALSE            , _)",
     Tok_IF            => "(lexer::TokenKind::IF               , _)",
@@ -400,5 +402,13 @@ bot: "UntypedAST" = {
     let varnm = lexer::get_string(vartok).unwrap();
     (UntypedASTMain::ContentOf(Vec::new(), varnm), rng)"
   },
+  <opn: Tok_LAMBDA> <var: Tok_VAR> <_: Tok_ARROW> <utast: nxlet> => {
+    "let (_, opnrng) = opn;
+    let (_, clsrng) = utast;
+    let (idtok, _) = var;
+    let idstring = lexer::get_string(idtok).unwrap();
+    let rng = opnrng.merge(&clsrng);
+    (UntypedASTMain::FunExp(idstring, Box::new(utast)), rng)"
+  }
 };
 
