@@ -30,3 +30,4 @@ test:
 	target\debug\ralcu.exe test/21.txt
 	target\debug\ralcu.exe test/22.txt
 	target\debug\ralcu.exe test/23.txt
+	target\debug\ralcu.exe test/let.txt

@@ -60,66 +60,72 @@ nxtoplevel: "UntypedAST" = {
 };
 
 nxnonrecdec: "(String, UntypedAST)" = {
-  <name: Tok_VAR> <_:Tok_DEF_EQ> <utast: nxlet> => {
+  <name: Tok_VAR> <vars: varlist> <_:Tok_DEF_EQ> <utast: nxlet> => {
     "let (name_token, _) = name;
     let name_string = lexer::get_string(name_token).unwrap();
+    let (_,rng) = utast;
+    let utast =
+      if vars.len() == 0 {
+        utast
+      } else {
+        types::make_lambda_list(vars, utast, rng)
+      };
     (name_string, utast)"
   },
-  <_: Tok_LPAREN> <data:nxnonrecdec_sub_binop> => {"data"},
+  <_: Tok_LPAREN> <name_string:nxnonrecdec_sub_binop> <vars: varlist> <_:Tok_DEF_EQ> <utast: nxlet> => {
+    "
+    let (_,rng) = utast;
+    let utast =
+      if vars.len() == 0 {
+        utast
+      } else {
+        types::make_lambda_list(vars, utast, rng)
+      };
+    (name_string, utast)"
+  },
 };
 
-nxnonrecdec_sub_binop: "(String, UntypedAST)" = {
-  <binop: Tok_BINOP_AMP> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+nxnonrecdec_sub_binop: "String" = {
+  <binop: Tok_BINOP_AMP> <_: Tok_RPAREN> => {
     "let (name_token, _) = binop;
-    let name_string = lexer::get_string(name_token).unwrap();
-    (name_string, utast)"
+    lexer::get_string(name_token).unwrap()"
   },
-  <binop: Tok_BINOP_BAR> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+  <binop: Tok_BINOP_BAR> <_: Tok_RPAREN> => {
     "let (name_token, _) = binop;
-    let name_string = lexer::get_string(name_token).unwrap();
-    (name_string, utast)"
+    lexer::get_string(name_token).unwrap()"
   },
-  <binop: Tok_BINOP_DIVIDES> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+  <binop: Tok_BINOP_DIVIDES> <_: Tok_RPAREN> => {
     "let (name_token, _) = binop;
-    let name_string = lexer::get_string(name_token).unwrap();
-    (name_string, utast)"
+    lexer::get_string(name_token).unwrap()"
   },
-  <binop: Tok_BINOP_EQ> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+  <binop: Tok_BINOP_EQ> <_: Tok_RPAREN> => {
     "let (name_token, _) = binop;
-    let name_string = lexer::get_string(name_token).unwrap();
-    (name_string, utast)"
+    lexer::get_string(name_token).unwrap()"
   },
-  <binop: Tok_BINOP_GT> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+  <binop: Tok_BINOP_GT> <_: Tok_RPAREN> => {
     "let (name_token, _) = binop;
-    let name_string = lexer::get_string(name_token).unwrap();
-    (name_string, utast)"
+    lexer::get_string(name_token).unwrap()"
   },
-  <binop: Tok_BINOP_HAT> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+  <binop: Tok_BINOP_HAT> <_: Tok_RPAREN> => {
     "let (name_token, _) = binop;
-    let name_string = lexer::get_string(name_token).unwrap();
-    (name_string, utast)"
+    lexer::get_string(name_token).unwrap()"
+  },
+  <binop: Tok_BINOP_LT> <_: Tok_RPAREN> => {
+    "let (name_token, _) = binop;
+    lexer::get_string(name_token).unwrap()"
   },
   
-  <binop: Tok_BINOP_LT> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+  <binop: Tok_BINOP_MINUS> <_: Tok_RPAREN> => {
     "let (name_token, _) = binop;
-    let name_string = lexer::get_string(name_token).unwrap();
-    (name_string, utast)"
+    lexer::get_string(name_token).unwrap()"
   },
-  
-  <binop: Tok_BINOP_MINUS> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+  <binop: Tok_BINOP_PLUS> <_: Tok_RPAREN> => {
     "let (name_token, _) = binop;
-    let name_string = lexer::get_string(name_token).unwrap();
-    (name_string, utast)"
+    lexer::get_string(name_token).unwrap()"
   },
-  <binop: Tok_BINOP_PLUS> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
+  <binop: Tok_BINOP_TIMES> <_: Tok_RPAREN> => {
     "let (name_token, _) = binop;
-    let name_string = lexer::get_string(name_token).unwrap();
-    (name_string, utast)"
-  },
-  <binop: Tok_BINOP_TIMES> <_: Tok_RPAREN> <_:Tok_DEF_EQ> <utast: nxlet> => {
-    "let (name_token, _) = binop;
-    let name_string = lexer::get_string(name_token).unwrap();
-    (name_string, utast)"
+    lexer::get_string(name_token).unwrap()"
   },
 };
 
@@ -458,7 +464,7 @@ bot: "UntypedAST" = {
     let varnm = lexer::get_string(vartok).unwrap();
     (UntypedASTMain::ContentOf(Vec::new(), varnm), rng)"
   },
-  <opn: Tok_LAMBDA> <vars: varlist> <_: Tok_ARROW> <utast: nxlet> => {
+  <opn: Tok_LAMBDA> <vars: varlist_non_empty> <_: Tok_ARROW> <utast: nxlet> => {
     "let (_, opnrng) = opn;
     let (_, clsrng) = utast;
     let rng = opnrng.merge(&clsrng);
@@ -544,6 +550,16 @@ paren_nxlet_or_binop: "(UntypedAST, Range)" = {
 };
 
 varlist: "Vec<String>" = {
+  <var: Tok_VAR> <tail: varlistsub> => {
+    "let mut v = tail;
+    let (vartok, _) = var;
+    v.push(lexer::get_string(vartok).unwrap());
+    v"
+  },
+  => {"Vec::new()"},
+};
+
+varlist_non_empty: "Vec<String>" = {
   <var: Tok_VAR> <tail: varlistsub> => {
     "let mut v = tail;
     let (vartok, _) = var;

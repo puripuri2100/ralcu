@@ -131,16 +131,33 @@ where
   let main = match code_type? {
     CodeType::Tok1 => {
       let name = _parse_token_Tok_VAR(tokens)?;
+      let vars = _parse_fn_varlist(tokens)?;
       let _ = _parse_token_Tok_DEF_EQ(tokens)?;
       let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = name;
       let name_string = lexer::get_string(name_token).unwrap();
+      let (_, rng) = utast;
+      let utast = if vars.len() == 0 {
+        utast
+      } else {
+        types::make_lambda_list(vars, utast, rng)
+      };
       (name_string, utast)
     }
     CodeType::Tok2 => {
       let _ = _parse_token_Tok_LPAREN(tokens)?;
-      let data = _parse_fn_nxnonrecdec_sub_binop(tokens)?;
-      data
+      let name_string = _parse_fn_nxnonrecdec_sub_binop(tokens)?;
+      let vars = _parse_fn_varlist(tokens)?;
+      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
+      let utast = _parse_fn_nxlet(tokens)?;
+
+      let (_, rng) = utast;
+      let utast = if vars.len() == 0 {
+        utast
+      } else {
+        types::make_lambda_list(vars, utast, rng)
+      };
+      (name_string, utast)
     }
     _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
   };
@@ -152,7 +169,7 @@ where
 #[allow(unused_parens)]
 fn _parse_fn_nxnonrecdec_sub_binop<Tokens>(
   tokens: &mut Peekable<Tokens>,
-) -> Result<(String, UntypedAST), ParseError>
+) -> Result<String, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
@@ -190,92 +207,62 @@ where
     CodeType::Tok1 => {
       let binop = _parse_token_Tok_BINOP_AMP(tokens)?;
       let _ = _parse_token_Tok_RPAREN(tokens)?;
-      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
-      let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = binop;
-      let name_string = lexer::get_string(name_token).unwrap();
-      (name_string, utast)
+      lexer::get_string(name_token).unwrap()
     }
     CodeType::Tok2 => {
       let binop = _parse_token_Tok_BINOP_BAR(tokens)?;
       let _ = _parse_token_Tok_RPAREN(tokens)?;
-      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
-      let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = binop;
-      let name_string = lexer::get_string(name_token).unwrap();
-      (name_string, utast)
+      lexer::get_string(name_token).unwrap()
     }
     CodeType::Tok3 => {
       let binop = _parse_token_Tok_BINOP_DIVIDES(tokens)?;
       let _ = _parse_token_Tok_RPAREN(tokens)?;
-      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
-      let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = binop;
-      let name_string = lexer::get_string(name_token).unwrap();
-      (name_string, utast)
+      lexer::get_string(name_token).unwrap()
     }
     CodeType::Tok4 => {
       let binop = _parse_token_Tok_BINOP_EQ(tokens)?;
       let _ = _parse_token_Tok_RPAREN(tokens)?;
-      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
-      let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = binop;
-      let name_string = lexer::get_string(name_token).unwrap();
-      (name_string, utast)
+      lexer::get_string(name_token).unwrap()
     }
     CodeType::Tok5 => {
       let binop = _parse_token_Tok_BINOP_GT(tokens)?;
       let _ = _parse_token_Tok_RPAREN(tokens)?;
-      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
-      let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = binop;
-      let name_string = lexer::get_string(name_token).unwrap();
-      (name_string, utast)
+      lexer::get_string(name_token).unwrap()
     }
     CodeType::Tok6 => {
       let binop = _parse_token_Tok_BINOP_HAT(tokens)?;
       let _ = _parse_token_Tok_RPAREN(tokens)?;
-      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
-      let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = binop;
-      let name_string = lexer::get_string(name_token).unwrap();
-      (name_string, utast)
+      lexer::get_string(name_token).unwrap()
     }
     CodeType::Tok7 => {
       let binop = _parse_token_Tok_BINOP_LT(tokens)?;
       let _ = _parse_token_Tok_RPAREN(tokens)?;
-      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
-      let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = binop;
-      let name_string = lexer::get_string(name_token).unwrap();
-      (name_string, utast)
+      lexer::get_string(name_token).unwrap()
     }
     CodeType::Tok8 => {
       let binop = _parse_token_Tok_BINOP_MINUS(tokens)?;
       let _ = _parse_token_Tok_RPAREN(tokens)?;
-      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
-      let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = binop;
-      let name_string = lexer::get_string(name_token).unwrap();
-      (name_string, utast)
+      lexer::get_string(name_token).unwrap()
     }
     CodeType::Tok9 => {
       let binop = _parse_token_Tok_BINOP_PLUS(tokens)?;
       let _ = _parse_token_Tok_RPAREN(tokens)?;
-      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
-      let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = binop;
-      let name_string = lexer::get_string(name_token).unwrap();
-      (name_string, utast)
+      lexer::get_string(name_token).unwrap()
     }
     CodeType::Tok10 => {
       let binop = _parse_token_Tok_BINOP_TIMES(tokens)?;
       let _ = _parse_token_Tok_RPAREN(tokens)?;
-      let _ = _parse_token_Tok_DEF_EQ(tokens)?;
-      let utast = _parse_fn_nxlet(tokens)?;
       let (name_token, _) = binop;
-      let name_string = lexer::get_string(name_token).unwrap();
-      (name_string, utast)
+      lexer::get_string(name_token).unwrap()
     }
     _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
   };
@@ -1168,7 +1155,7 @@ where
     }
     CodeType::Tok7 => {
       let opn = _parse_token_Tok_LAMBDA(tokens)?;
-      let vars = _parse_fn_varlist(tokens)?;
+      let vars = _parse_fn_varlist_non_empty(tokens)?;
       let _ = _parse_token_Tok_ARROW(tokens)?;
       let utast = _parse_fn_nxlet(tokens)?;
       let (_, opnrng) = opn;
@@ -1336,6 +1323,41 @@ where
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
 fn _parse_fn_varlist<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Vec<String>, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  enum CodeType {
+    Tok1,
+    Other,
+  }
+  let code_type = tokens
+    .peek()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok {
+      (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
+
+      _ => Ok(CodeType::Other),
+    });
+  let main = match code_type? {
+    CodeType::Tok1 => {
+      let var = _parse_token_Tok_VAR(tokens)?;
+      let tail = _parse_fn_varlistsub(tokens)?;
+      let mut v = tail;
+      let (vartok, _) = var;
+      v.push(lexer::get_string(vartok).unwrap());
+      v
+    }
+    _ => Vec::new(),
+  };
+  Ok(main)
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_fn_varlist_non_empty<Tokens>(
+  tokens: &mut Peekable<Tokens>,
+) -> Result<Vec<String>, ParseError>
 where
   Tokens: Iterator<Item = lexer::Token>,
 {
