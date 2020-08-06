@@ -61,8 +61,6 @@ pub fn binary_operator(
 }
 
 pub fn make_lambda_list(idlist: Vec<String>, utastlast: UntypedAST, rng: Range) -> UntypedAST {
-  let mut idlist = idlist;
-  idlist.reverse();
   let mut utast = utastlast;
   for id in idlist.iter() {
     let new_utast = (UntypedASTMain::FunExp(id.clone(), Box::new(utast)), rng);
