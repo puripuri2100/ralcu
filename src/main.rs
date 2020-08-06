@@ -1,5 +1,6 @@
-//use std::fs::File;
-//use std::io::prelude::*;
+use clap::{App, Arg};
+use std::fs::File;
+use std::io::prelude::*;
 
 pub mod environment;
 pub mod eval;
@@ -8,155 +9,19 @@ pub mod parser;
 pub mod types;
 
 fn main() {
-  //let mut input_file_name = "hoge";
-  //let mut f = File::open(&mut input_file_name).unwrap();
-  //let mut contents = String::new();
-  //f.read_to_string(&mut contents).unwrap();
-  let s = "1 + 2 * 3";
-  a(s);
-  let s = "2 * 2 + 3";
-  a(s);
-  let s = "2 * (2 + 3)";
-  a(s);
-  let s = "if 2 < 3 then 2 + 3 else 2 * 3";
-  a(s);
-  let s = "v + (if 2 < 3 then 2 + 3 else 2 * 3)";
-  a(s);
-  let s = "v + i * x";
-  a(s);
-  a("let hoge = 1 in hoge + 3");
-  a("let hoge = 1 let fuga = 3 in hoge + fuga");
-  a("let hoge = 1 in let fuga = 3 in hoge + fuga");
-  let s = "
-  let x = 1 in
-  let y = x + 2 in
-  y * 4
-  ";
-  a(s);
-  let s = "
-  let x = 1
-  let z = 1
-  let y = x + 2 in
-  y * 4
-  ";
-  a(s);
-  let s = "
-  let x = 1
-  let z = 1
-  let y = x + 2 in
-  let a =
-    let a1 = 2 in
-    let a2 = 3 in
-  a1 + a2
-  in
-  a
-  ";
-  a(s);
-  let s = "
-  let x = 1
-  let z = 1
-  let y = x + 2 in
-  let a =
-    let a1 = 2 in
-    let a2 = 3 in
-    let a3 = 4 in
-  a1 + a2
-  in
-  a + x + y * z
-  ";
-  a(s);
-  let s = "
-    let f = fun x y -> x + y in
-    let g = f 3 in
-    g 5
-  ";
-  a(s);
-  let s = "
-  fun x y -> (+) x y
-  ";
-  a(s);
-  let s = "
-    (+) 3 5
-  ";
-  a(s);
-  let s = "
-  let f =
-    let x = 2 in
-    let addx = fun y z -> x + y * z in
-    addx
-  in
-  f 4 3
-  ";
-  a(s);
-  let s = "
-  let f =
-    let x = 2 in
-    fun y z -> x + y + z
-  in
-  f
-  ";
-  a(s);
-  let s = "
-  let f =
-    let x = 2 in
-    fun y z -> x + y + z
-  in
-  let g = f 3 in
-  g
-  ";
-  a(s);
-  let s = "
-  let f =
-    let x = 2 in
-    fun g y z -> x + ((+) (g y) z)
-  in
-  let g = fun x -> x * 3 in
-  f g 4 5
-  ";
-  a(s);
-  let s = "
-  let f =
-    let x = 2 in
-    fun g y z -> x + g y + z
-  in
-  let g = fun x -> x * 3 in
-  f g
-  ";
-  a(s);
-  let s = "
-    int (sin (float (5)))
-  ";
-  a(s);
-  let s = "
-    let f = fun x -> (+) x in
-    let g = fun x f y -> f x * y in
-    g 3 (f 7) 5
-  ";
-  a(s);
-  let s = "
-    let (&&) = fun x b -> x in
-    4 && 3
-  ";
-  a(s);
-  let s = "
-    let (<) = fun x y -> y > x in
-    4 < 3
-  ";
-  a(s);
-  //b("e1 e2 + e3");
-  //b("e1 + e2 e3");
-  //let s = "a b c d";
-  //a(s);
-  //  let s = "5 + int(5.6)";
-  //  a(s);
-  //  let s = "5.5 +. float(5)";
-  //  a(s);
-  //  let s = "int(float(5)) + 5";
-  //  a(s);
-  //  let s = "sin(3.14 *. 2.0)";
-  //  a(s);
-  //  let s = "int_plus(3, 2)";
-  //  a(s);
+  let app = App::new("ralcu").version("0.0.1").arg(
+    Arg::with_name("input")
+      .help("Specify input file")
+      .value_name("FILE")
+      .takes_value(true),
+  );
+  let matches = app.get_matches();
+  let mut input_file_name = matches.value_of("input").unwrap();
+  let mut f = File::open(&mut input_file_name).unwrap();
+  let mut contents = String::new();
+  f.read_to_string(&mut contents).unwrap();
+  println!("file name: {}", input_file_name);
+  a(&mut contents);
 }
 
 #[allow(dead_code)]

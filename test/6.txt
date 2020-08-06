@@ -1,0 +1,1 @@
+let hoge = 1 let fuga = 3 in hoge + fuga

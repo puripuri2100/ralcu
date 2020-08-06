@@ -1,0 +1,6 @@
+  let f =
+    let x = 2 in
+    fun g y z -> x + ((+) (g y) z)
+  in
+  let g = fun x -> x * 3 in
+  f g 4 5

@@ -1,0 +1,1 @@
+let hoge = 1 in hoge + 3

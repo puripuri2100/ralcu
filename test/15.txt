@@ -1,0 +1,6 @@
+  let f =
+    let x = 2 in
+    let addx = fun y z -> (+) x y * z in
+    addx
+  in
+  f 4 3
