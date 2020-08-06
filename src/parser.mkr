@@ -402,13 +402,29 @@ bot: "UntypedAST" = {
     let varnm = lexer::get_string(vartok).unwrap();
     (UntypedASTMain::ContentOf(Vec::new(), varnm), rng)"
   },
-  <opn: Tok_LAMBDA> <var: Tok_VAR> <_: Tok_ARROW> <utast: nxlet> => {
+  <opn: Tok_LAMBDA> <vars: varlist> <_: Tok_ARROW> <utast: nxlet> => {
     "let (_, opnrng) = opn;
     let (_, clsrng) = utast;
-    let (idtok, _) = var;
-    let idstring = lexer::get_string(idtok).unwrap();
     let rng = opnrng.merge(&clsrng);
-    (UntypedASTMain::FunExp(idstring, Box::new(utast)), rng)"
+    types::make_lambda_list(vars, utast, rng)"
   }
 };
 
+varlist: "Vec<String>" = {
+  <var: Tok_VAR> <tail: varlistsub> => {
+    "let mut v = tail;
+    let (vartok, _) = var;
+    v.push(lexer::get_string(vartok).unwrap());
+    v"
+  }
+};
+
+varlistsub: "Vec<String>" = {
+  <var: Tok_VAR> <tail: varlistsub> => {
+    "let mut v = tail;
+    let (vartok, _) = var;
+    v.push(lexer::get_string(vartok).unwrap());
+    v"
+  },
+  => {"Vec::new()"}
+}

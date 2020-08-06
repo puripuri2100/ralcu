@@ -68,10 +68,18 @@ fn main() {
   let s = "
   let f =
     let x = 2 in
-    let addx = fun y -> x + y in
+    let addx = fun y z -> x + y + z in
     addx
   in
-  f 4
+  f 4 3
+  ";
+  a(s);
+  let s = "
+  let f =
+    let x = 2 in
+    fun y z -> x + y + z
+  in
+  f 4 3
   ";
   a(s);
   //b("e1 e2 + e3");

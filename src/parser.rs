@@ -1027,17 +1027,81 @@ where
     }
     CodeType::Tok7 => {
       let opn = _parse_token_Tok_LAMBDA(tokens)?;
-      let var = _parse_token_Tok_VAR(tokens)?;
+      let vars = _parse_fn_varlist(tokens)?;
       let _ = _parse_token_Tok_ARROW(tokens)?;
       let utast = _parse_fn_nxlet(tokens)?;
       let (_, opnrng) = opn;
       let (_, clsrng) = utast;
-      let (idtok, _) = var;
-      let idstring = lexer::get_string(idtok).unwrap();
       let rng = opnrng.merge(&clsrng);
-      (UntypedASTMain::FunExp(idstring, Box::new(utast)), rng)
+      types::make_lambda_list(vars, utast, rng)
     }
     _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
+  };
+  Ok(main)
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_fn_varlist<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Vec<String>, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  enum CodeType {
+    Tok1,
+    Other,
+  }
+  let code_type = tokens
+    .peek()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok {
+      (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
+
+      _ => Ok(CodeType::Other),
+    });
+  let main = match code_type? {
+    CodeType::Tok1 => {
+      let var = _parse_token_Tok_VAR(tokens)?;
+      let tail = _parse_fn_varlistsub(tokens)?;
+      let mut v = tail;
+      let (vartok, _) = var;
+      v.push(lexer::get_string(vartok).unwrap());
+      v
+    }
+    _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
+  };
+  Ok(main)
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+fn _parse_fn_varlistsub<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Vec<String>, ParseError>
+where
+  Tokens: Iterator<Item = lexer::Token>,
+{
+  enum CodeType {
+    Tok1,
+    Other,
+  }
+  let code_type = tokens
+    .peek()
+    .ok_or(ParseError::Eof)
+    .and_then(|tok| match tok {
+      (lexer::TokenKind::VAR(_), _) => Ok(CodeType::Tok1),
+
+      _ => Ok(CodeType::Other),
+    });
+  let main = match code_type? {
+    CodeType::Tok1 => {
+      let var = _parse_token_Tok_VAR(tokens)?;
+      let tail = _parse_fn_varlistsub(tokens)?;
+      let mut v = tail;
+      let (vartok, _) = var;
+      v.push(lexer::get_string(vartok).unwrap());
+      v
+    }
+    _ => Vec::new(),
   };
   Ok(main)
 }
