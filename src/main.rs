@@ -66,9 +66,23 @@ fn main() {
   ";
   a(s);
   let s = "
+    let f = fun x y -> x + y in
+    let g = f 3 in
+    g 5
+  ";
+  a(s);
+  let s = "
+  fun x y -> plus x y
+  ";
+  a(s);
+  let s = "
+    plus 3 5
+  ";
+  a(s);
+  let s = "
   let f =
     let x = 2 in
-    let addx = fun y z -> x + y + z in
+    let addx = fun y z -> x + y * z in
     addx
   in
   f 4 3
@@ -79,7 +93,34 @@ fn main() {
     let x = 2 in
     fun y z -> x + y + z
   in
-  f 4 3
+  f
+  ";
+  a(s);
+  let s = "
+  let f =
+    let x = 2 in
+    fun y z -> x + y + z
+  in
+  let g = f 3 in
+  g
+  ";
+  a(s);
+  let s = "
+  let f =
+    let x = 2 in
+    fun g y z -> x + g y + z
+  in
+  let g = fun x -> x * 3 in
+  f g 4 5
+  ";
+  a(s);
+  let s = "
+  let f =
+    let x = 2 in
+    fun g y z -> x + g y + z
+  in
+  let g = fun x -> x * 3 in
+  f g
   ";
   a(s);
   //b("e1 e2 + e3");
@@ -100,13 +141,19 @@ fn main() {
 
 #[allow(dead_code)]
 fn a(s: &str) {
+  println!(" --- --- ---\n{}\n --- --- ---", s);
   let env = environment::extend(
     "i".to_owned(),
     eval::Exval::IntV(1),
     environment::extend(
       "v".to_owned(),
       eval::Exval::IntV(5),
-      environment::extend("x".to_owned(), eval::Exval::IntV(10), environment::empty()),
+      environment::extend(
+        "x".to_owned(),
+        eval::Exval::IntV(10),
+        //eval::primitive_env(environment::empty()),
+        environment::empty(),
+      ),
     ),
   );
   let tokens = lexer::lex(s).unwrap();
@@ -121,6 +168,7 @@ fn a(s: &str) {
 
 #[allow(dead_code)]
 fn b(s: &str) {
+  println!(" --- --- ---\n{}\n --- --- ---", s);
   let tokens = lexer::lex(s).unwrap();
   let ast_res = parser::parse(tokens);
   println!("{:?}", ast_res);

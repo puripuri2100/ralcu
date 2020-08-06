@@ -7,6 +7,7 @@ pub enum Exval {
   FloatV(f64),
   BoolV(bool),
   ProcV(String, types::UntypedAST, environment::Env<Dnval>),
+  PrimitiveV(String, types::UntypedAST, environment::Env<Dnval>),
 }
 
 type Dnval = Exval;
@@ -49,11 +50,69 @@ pub fn string_of_exval(exval: Dnval) -> String {
     Exval::IntV(i) => format!("{:?}", i),
     Exval::FloatV(f) => format!("{:?}", f),
     Exval::BoolV(b) => format!("{:?}", b),
-    _ => panic!(),
+    _ => format!("{:?}", exval),
   }
 }
 
-pub fn apply_prim(op: String, arg1: Dnval, arg2: Dnval) -> Dnval {
+fn my_plus(env: environment::Env<Dnval>, x_str: String, y_str: String) -> types::UntypedAST {
+  let x_eval_opt = environment::lookup(x_str.clone(), env.clone());
+  let y_eval_opt = environment::lookup(y_str.clone(), env.clone());
+  let mainast = match (x_eval_opt, y_eval_opt) {
+    (Some(x_eval), Some(y_eval)) => {
+      let x = get_exval_int(x_eval).unwrap();
+      let y = get_exval_int(y_eval).unwrap();
+      let i = x + y;
+      types::UntypedASTMain::IntConst(i)
+    }
+    _ => types::UntypedASTMain::ContentOf(Vec::new(), "plus".to_owned()),
+  };
+  (
+    types::UntypedASTMain::Apply(
+      Box::new((
+        types::UntypedASTMain::Apply(
+          Box::new((mainast, types::Range::dummy())),
+          Box::new((
+            types::UntypedASTMain::ContentOf(Vec::new(), x_str),
+            types::Range::dummy(),
+          )),
+        ),
+        types::Range::dummy(),
+      )),
+      Box::new((
+        types::UntypedASTMain::ContentOf(Vec::new(), y_str),
+        types::Range::dummy(),
+      )),
+    ),
+    types::Range::dummy(),
+  )
+}
+
+pub fn primitive_env(id: String, env: environment::Env<Dnval>) -> Option<Dnval> {
+  let primitive_vec = vec![(
+    "plus".to_owned(),
+    Exval::ProcV(
+      "_x".to_owned(),
+      (
+        types::UntypedASTMain::FunExp(
+          "_y".to_owned(),
+          Box::new(my_plus(env.clone(), "_x".to_owned(), "_y".to_owned())),
+        ),
+        types::Range::dummy(),
+      ),
+      env.clone(),
+    ),
+  )];
+  let v = primitive_vec
+    .iter()
+    .find(|(primitive_id, _)| primitive_id == &id);
+  match v {
+    None => None,
+    Some((_, e)) => Some(e.clone()),
+  }
+}
+
+
+fn apply_prim(op: String, arg1: Dnval, arg2: Dnval) -> Dnval {
   match (op.as_str(), arg1, arg2) {
     ("+", Exval::IntV(i1), Exval::IntV(i2)) => make_exval_int(i1 + i2),
     ("+.", Exval::FloatV(f1), Exval::FloatV(f2)) => make_exval_float(f1 + f2),
@@ -67,7 +126,16 @@ pub fn apply_prim(op: String, arg1: Dnval, arg2: Dnval) -> Dnval {
   }
 }
 
-pub fn eval_exp(env: environment::Env<Exval>, ast: types::UntypedAST) -> Dnval {
+//(Apply(
+//  (Apply(
+//    (ContentOf([], "plus"), Range(5, 9)),
+//    (IntConst(3), Range(10, 11)))
+//  , Range(5, 11)),
+//  (IntConst(5), Range(12, 13)))
+//, Range(5, 13)
+//)
+
+pub fn eval_exp(env: environment::Env<Dnval>, ast: types::UntypedAST) -> Dnval {
   use types::UntypedASTMain;
   let (astmain, _) = ast;
   match astmain {
@@ -82,7 +150,10 @@ pub fn eval_exp(env: environment::Env<Exval>, ast: types::UntypedAST) -> Dnval {
         _ => panic!(),
       }
     }
-    UntypedASTMain::ContentOf(_, x) => environment::lookup(x, env).unwrap(),
+    UntypedASTMain::ContentOf(_, x) => match environment::lookup(x.clone(), env.clone()) {
+      Some(e) => e,
+      None => primitive_env(x.clone(), env.clone()).unwrap(),
+    },
     UntypedASTMain::BinApply(op, exp1, exp2) => {
       let (op_string, _) = op;
       let arg1 = eval_exp(env.clone(), *exp1);
@@ -100,9 +171,11 @@ pub fn eval_exp(env: environment::Env<Exval>, ast: types::UntypedAST) -> Dnval {
       match funval {
         Exval::ProcV(id, body, env2) => {
           let newenv = environment::extend(id, arg, env2);
+          //println!("newenv: {:?}", newenv);
+          //println!("body: {:?}", body);
           eval_exp(newenv, body)
         }
-        _ => panic!(),
+        _ => funval,
       }
     }
     UntypedASTMain::FinishHeaderFile => panic!(),

@@ -1,6 +1,6 @@
 "use super::lexer;"
 "use super::types;"
-"use super::types::{UntypedASTMain, UntypedAST};"
+"use super::types::{UntypedASTMain, UntypedAST, Range};"
 
 
 grammar;
@@ -391,11 +391,11 @@ bot: "UntypedAST" = {
     let (_, rng) = falsetok;
     (UntypedASTMain::BoolConst(false), rng)"
   },
-  <opn: Tok_LPAREN> <utast: nxif> <cls: Tok_RPAREN> => {"
-    let (_, rngo) = opn;
-    let (_, rngc) = cls;
+  <opn: Tok_LPAREN> <utast_and_rng :paren_nxlet_or_binop> => {"
+    let (_, opnrng) = opn;
+    let (utast, clsrng) = utast_and_rng;
     let (main,_) = utast;
-    (main, rngo.merge(&rngc))"
+    (main, opnrng.merge(&clsrng))"
   },
   <var: Tok_VAR> => {"
     let (vartok, rng) = var;
@@ -408,6 +408,83 @@ bot: "UntypedAST" = {
     let rng = opnrng.merge(&clsrng);
     types::make_lambda_list(vars, utast, rng)"
   }
+};
+
+paren_nxlet_or_binop: "(UntypedAST, Range)" = {
+  <binop: Tok_BINOP_TIMES  > <cls: Tok_RPAREN> => {
+    "let (_, clsrng) = cls;
+    let (binoptok, binoprng) = binop;
+    let binopstr = lexer::get_string(binoptok).unwrap();
+    let utastmain = UntypedASTMain::ContentOf(Vec::new(), binopstr);
+    ((utastmain, binoprng), clsrng)"
+  },
+  <binop: Tok_BINOP_DIVIDES> <cls: Tok_RPAREN> => {
+    "let (_, clsrng) = cls;
+    let (binoptok, binoprng) = binop;
+    let binopstr = lexer::get_string(binoptok).unwrap();
+    let utastmain = UntypedASTMain::ContentOf(Vec::new(), binopstr);
+    ((utastmain, binoprng), clsrng)"
+  },
+  <binop: Tok_BINOP_PLUS   > <cls: Tok_RPAREN> => {
+    "let (_, clsrng) = cls;
+    let (binoptok, binoprng) = binop;
+    let binopstr = lexer::get_string(binoptok).unwrap();
+    let utastmain = UntypedASTMain::ContentOf(Vec::new(), binopstr);
+    ((utastmain, binoprng), clsrng)"
+  },
+  <binop: Tok_BINOP_MINUS  > <cls: Tok_RPAREN> => {
+    "let (_, clsrng) = cls;
+    let (binoptok, binoprng) = binop;
+    let binopstr = lexer::get_string(binoptok).unwrap();
+    let utastmain = UntypedASTMain::ContentOf(Vec::new(), binopstr);
+    ((utastmain, binoprng), clsrng)"
+  },
+  <binop: Tok_BINOP_HAT    > <cls: Tok_RPAREN> => {
+    "let (_, clsrng) = cls;
+    let (binoptok, binoprng) = binop;
+    let binopstr = lexer::get_string(binoptok).unwrap();
+    let utastmain = UntypedASTMain::ContentOf(Vec::new(), binopstr);
+    ((utastmain, binoprng), clsrng)"
+  },
+  <binop: Tok_BINOP_AMP    > <cls: Tok_RPAREN> => {
+    "let (_, clsrng) = cls;
+    let (binoptok, binoprng) = binop;
+    let binopstr = lexer::get_string(binoptok).unwrap();
+    let utastmain = UntypedASTMain::ContentOf(Vec::new(), binopstr);
+    ((utastmain, binoprng), clsrng)"
+  },
+  <binop: Tok_BINOP_BAR    > <cls: Tok_RPAREN> => {
+    "let (_, clsrng) = cls;
+    let (binoptok, binoprng) = binop;
+    let binopstr = lexer::get_string(binoptok).unwrap();
+    let utastmain = UntypedASTMain::ContentOf(Vec::new(), binopstr);
+    ((utastmain, binoprng), clsrng)"
+  },
+  <binop: Tok_BINOP_GT     > <cls: Tok_RPAREN> => {
+    "let (_, clsrng) = cls;
+    let (binoptok, binoprng) = binop;
+    let binopstr = lexer::get_string(binoptok).unwrap();
+    let utastmain = UntypedASTMain::ContentOf(Vec::new(), binopstr);
+    ((utastmain, binoprng), clsrng)"
+  },
+  <binop: Tok_BINOP_LT     > <cls: Tok_RPAREN> => {
+    "let (_, clsrng) = cls;
+    let (binoptok, binoprng) = binop;
+    let binopstr = lexer::get_string(binoptok).unwrap();
+    let utastmain = UntypedASTMain::ContentOf(Vec::new(), binopstr);
+    ((utastmain, binoprng), clsrng)"
+  },
+  <binop: Tok_BINOP_EQ     > <cls: Tok_RPAREN> => {
+    "let (_, clsrng) = cls;
+    let (binoptok, binoprng) = binop;
+    let binopstr = lexer::get_string(binoptok).unwrap();
+    let utastmain = UntypedASTMain::ContentOf(Vec::new(), binopstr);
+    ((utastmain, binoprng), clsrng)"
+  },
+  <utast: nxlet> <cls: Tok_RPAREN> => {
+    "let (_, clsrng) = cls;
+    (utast, clsrng)"
+  },
 };
 
 varlist: "Vec<String>" = {
