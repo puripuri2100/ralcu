@@ -72,11 +72,11 @@ fn main() {
   ";
   a(s);
   let s = "
-  fun x y -> plus x y
+  fun x y -> (+) x y
   ";
   a(s);
   let s = "
-    plus 3 5
+    (+) 3 5
   ";
   a(s);
   let s = "
@@ -108,7 +108,7 @@ fn main() {
   let s = "
   let f =
     let x = 2 in
-    fun g y z -> x + g y + z
+    fun g y z -> x + ((+) (g y) z)
   in
   let g = fun x -> x * 3 in
   f g 4 5
@@ -121,6 +121,16 @@ fn main() {
   in
   let g = fun x -> x * 3 in
   f g
+  ";
+  a(s);
+  let s = "
+    int (sin (float (5)))
+  ";
+  a(s);
+  let s = "
+    let f = fun x -> (+) x in
+    let g = fun x f y -> f x * y in
+    g 3 (f 7) 5
   ";
   a(s);
   //b("e1 e2 + e3");
