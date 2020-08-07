@@ -82,6 +82,14 @@ fn get_primitive_exval(id: String) -> Option<Dnval> {
       Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
     ),
     (
+      "/".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      "/.".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
       ">".to_owned(),
       Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
     ),
@@ -166,6 +174,16 @@ fn def_primitive(id: String, argvec: Vec<Dnval>) -> Option<Dnval> {
       let x = get_exval_float(argvec[0].clone()).unwrap();
       let y = get_exval_float(argvec[1].clone()).unwrap();
       Some(make_exval_float(x * y))
+    }
+    "/" => {
+      let x = get_exval_int(argvec[0].clone()).unwrap();
+      let y = get_exval_int(argvec[1].clone()).unwrap();
+      Some(make_exval_int(x / y))
+    }
+    "/." => {
+      let x = get_exval_float(argvec[0].clone()).unwrap();
+      let y = get_exval_float(argvec[1].clone()).unwrap();
+      Some(make_exval_float(x / y))
     }
     ">" => {
       let x = get_exval_int(argvec[0].clone()).unwrap();
@@ -268,24 +286,34 @@ pub fn eval_exp(env: environment::Env<Dnval>, ast: types::UntypedAST) -> Dnval {
     }
     UntypedASTMain::LetRecExp(id, para, exp1, exp2) => {
       let dummyenv = RefCell::new(environment::empty());
-      let newenv = environment::extend(
-        id.clone(),
-        Exval::ProcV(para, *exp1, dummyenv.clone()),
-        env,
-      );
+      let newenv =
+        environment::extend(id.clone(), Exval::ProcV(para, *exp1, dummyenv.clone()), env);
+      println!("newenv1: {:?}\n", newenv);
       let _ = dummyenv.replace(newenv.clone());
+      println!("newenv2: {:?}\n", newenv);
       eval_exp(newenv, *exp2)
     }
     UntypedASTMain::FunExp(id, exp) => Exval::ProcV(id, *exp, RefCell::new(env)),
     UntypedASTMain::Apply(exp1, exp2) => {
       let funval = eval_exp(env.clone(), *exp1);
       let arg = eval_exp(env, *exp2);
-      match funval.clone() {
+      match funval {
         Exval::ProcV(id, body, env2) => {
           let newenv = environment::extend(id, arg, env2.into_inner());
-          println!("newenv: {:?}", newenv);
-          println!("body: {:?}", body);
-          eval_exp(newenv, body)
+          println!("newenv: {:?}\n", newenv);
+          //println!("body: {:?}", body);
+          let newexval = eval_exp(newenv.clone(), body);
+          //match newexval {
+          //  Exval::ProcV(id, body, env) => eval_exp(
+          //    newenv,
+          //    (
+          //      types::UntypedASTMain::FunExp(id, Box::new(body)),
+          //      types::Range::dummy(),
+          //    ),
+          //  ),
+          //  _ => newexval,
+          //}
+          newexval
         }
         Exval::PrimitiveV(id, len, argvec) => {
           if argvec.len() == len {

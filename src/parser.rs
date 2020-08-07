@@ -110,12 +110,11 @@ where
       let (_, opnrng) = opn;
       let (_, clsrng) = subseq;
       let rng = opnrng.merge(&clsrng);
-      let main = UntypedASTMain::LetRecExp(
-        name.clone(),
-        name.clone(),
-        Box::new(utast),
-        Box::new(subseq),
-      );
+      let para = match utast.clone() {
+        ((types::UntypedASTMain::FunExp(para, _), _)) => para,
+        _ => panic!(),
+      };
+      let main = UntypedASTMain::LetRecExp(name, para, Box::new(utast), Box::new(subseq));
       (main, rng)
     }
     _ => return Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
@@ -379,11 +378,15 @@ where
       let recdec = _parse_fn_nxnonrecdec(tokens)?;
       let _ = _parse_token_Tok_IN(tokens)?;
       let utast2 = _parse_fn_nxlet(tokens)?;
-      let (name, utast1) = recdec;
+      let (name, utast) = recdec;
       let (_, opnrng) = opn;
       let (_, clsrng) = utast2;
       let rng = opnrng.merge(&clsrng);
-      let main = UntypedASTMain::LetRecExp(name.clone(), name, Box::new(utast1), Box::new(utast2));
+      let para = match utast.clone() {
+        (UntypedASTMain::FunExp(para, _), _) => para,
+        _ => panic!(),
+      };
+      let main = UntypedASTMain::LetRecExp(name, para, Box::new(utast), Box::new(utast2));
       (main, rng)
     }
     CodeType::Tok3 => {

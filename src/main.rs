@@ -1,5 +1,4 @@
 use clap::{App, Arg};
-use std::cell::RefCell;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -36,7 +35,7 @@ fn a(s: &str) {
   let (id, newenv, v) = eval::eval_decl(env, ast);
   println!("val {} =", id);
   println!("{:?}", v);
-  println!("{:?}", newenv);
+  //println!("{:?}", newenv);
 }
 
 #[allow(dead_code)]
