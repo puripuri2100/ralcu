@@ -29,6 +29,7 @@ extern {
     Tok_COLON         => "(lexer::TokenKind::COLON            , _)",
     Tok_COMMA         => "(lexer::TokenKind::COMMA            , _)",
     Tok_LETNONREC     => "(lexer::TokenKind::LETNONREC        , _)",
+    Tok_LETREC        => "(lexer::TokenKind::LETREC        , _)",
     Tok_LETAND        => "(lexer::TokenKind::LETAND           , _)",
     Tok_IN            => "(lexer::TokenKind::IN               , _)",
     Tok_LAMBDA        => "(lexer::TokenKind::LAMBDA           , _)",
@@ -55,6 +56,14 @@ nxtoplevel: "UntypedAST" = {
     let (_, clsrng) = subseq;
     let rng = opnrng.merge(&clsrng);
     let main = UntypedASTMain::LetExp(name, Box::new(utast), Box::new(subseq));
+    (main, rng)"
+  },
+  <opn: Tok_LETREC> <recdec: nxnonrecdec> <subseq: nxtopsubseq> => {
+    "let (name, utast) = recdec;
+    let (_, opnrng) = opn;
+    let (_, clsrng) = subseq;
+    let rng = opnrng.merge(&clsrng);
+    let main = UntypedASTMain::LetRecExp(name.clone(), name.clone(), Box::new(utast), Box::new(subseq));
     (main, rng)"
   },
 };
@@ -146,6 +155,14 @@ nxlet: "UntypedAST" = {
     let (_, clsrng) = utast2;
     let rng = opnrng.merge(&clsrng);
     let main = UntypedASTMain::LetExp(name, Box::new(utast1), Box::new(utast2));
+    (main, rng)"
+  },
+  <opn: Tok_LETREC> <recdec: nxnonrecdec> <_: Tok_IN> <utast2: nxlet> => {
+    "let (name, utast1) = recdec;
+    let (_, opnrng) = opn;
+    let (_, clsrng) = utast2;
+    let rng = opnrng.merge(&clsrng);
+    let main = UntypedASTMain::LetRecExp(name.clone(), name, Box::new(utast1), Box::new(utast2));
     (main, rng)"
   },
   <utast: nxif> => {"utast"},

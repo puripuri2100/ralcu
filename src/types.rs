@@ -38,6 +38,7 @@ pub enum UntypedASTMain {
   BinApply((String, Range), Box<UntypedAST>, Box<UntypedAST>),
   ContentOf(Vec<String>, String),
   LetExp(String, Box<UntypedAST>, Box<UntypedAST>),
+  LetRecExp(String, String, Box<UntypedAST>, Box<UntypedAST>),
   FunExp(String, Box<UntypedAST>),
   FinishHeaderFile,
 }

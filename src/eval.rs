@@ -1,12 +1,13 @@
 use super::environment;
 use super::types;
+use std::cell::RefCell;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum Exval {
   IntV(i64),
   FloatV(f64),
   BoolV(bool),
-  ProcV(String, types::UntypedAST, environment::Env<Dnval>),
+  ProcV(String, types::UntypedAST, RefCell<environment::Env<Dnval>>),
   PrimitiveV(String, usize, Vec<Dnval>),
 }
 
@@ -61,6 +62,54 @@ fn get_primitive_exval(id: String) -> Option<Dnval> {
       Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
     ),
     (
+      "+.".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      "-".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      "-.".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      "*".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      "*.".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      ">".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      ">.".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      "<".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      "<.".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      "==".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      "&&".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
+      "||".to_owned(),
+      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+    ),
+    (
       "sin".to_owned(),
       Exval::PrimitiveV("sin".to_owned(), 1, Vec::new()),
     ),
@@ -98,6 +147,16 @@ fn def_primitive(id: String, argvec: Vec<Dnval>) -> Option<Dnval> {
       let y = get_exval_float(argvec[1].clone()).unwrap();
       Some(make_exval_float(x + y))
     }
+    "-" => {
+      let x = get_exval_int(argvec[0].clone()).unwrap();
+      let y = get_exval_int(argvec[1].clone()).unwrap();
+      Some(make_exval_int(x - y))
+    }
+    "-." => {
+      let x = get_exval_float(argvec[0].clone()).unwrap();
+      let y = get_exval_float(argvec[1].clone()).unwrap();
+      Some(make_exval_float(x - y))
+    }
     "*" => {
       let x = get_exval_int(argvec[0].clone()).unwrap();
       let y = get_exval_int(argvec[1].clone()).unwrap();
@@ -127,6 +186,21 @@ fn def_primitive(id: String, argvec: Vec<Dnval>) -> Option<Dnval> {
       let x = get_exval_float(argvec[0].clone()).unwrap();
       let y = get_exval_float(argvec[1].clone()).unwrap();
       Some(make_exval_bool(x < y))
+    }
+    "==" => {
+      let x = get_exval_int(argvec[0].clone()).unwrap();
+      let y = get_exval_int(argvec[1].clone()).unwrap();
+      Some(make_exval_bool(x == y))
+    }
+    "&&" => {
+      let x = get_exval_bool(argvec[0].clone()).unwrap();
+      let y = get_exval_bool(argvec[1].clone()).unwrap();
+      Some(make_exval_bool(x && y))
+    }
+    "||" => {
+      let x = get_exval_bool(argvec[0].clone()).unwrap();
+      let y = get_exval_bool(argvec[1].clone()).unwrap();
+      Some(make_exval_bool(x || y))
     }
     "sin" => {
       let x = get_exval_float(argvec[0].clone()).unwrap();
@@ -174,10 +248,10 @@ pub fn eval_exp(env: environment::Env<Dnval>, ast: types::UntypedAST) -> Dnval {
       match environment::lookup(op_string.clone(), env.clone()) {
         Some(e) => match e {
           Exval::ProcV(id, body, env2) => {
-            let newenv = environment::extend(id, arg1, env2);
+            let newenv = environment::extend(id, arg1, env2.into_inner());
             match eval_exp(newenv, body) {
               Exval::ProcV(id, body2, env3) => {
-                let newenv = environment::extend(id, arg2, env3);
+                let newenv = environment::extend(id, arg2, env3.into_inner());
                 eval_exp(newenv, body2)
               }
               _ => panic!(),
@@ -187,21 +261,30 @@ pub fn eval_exp(env: environment::Env<Dnval>, ast: types::UntypedAST) -> Dnval {
         },
         None => def_primitive(op_string, vec![arg1, arg2]).unwrap(), //PrimitiveVを返す
       }
-      //apply_prim(op_string, arg1, arg2)
     }
     UntypedASTMain::LetExp(id, exp1, exp2) => {
       let value = eval_exp(env.clone(), *exp1);
       eval_exp(environment::extend(id, value, env), *exp2)
     }
-    UntypedASTMain::FunExp(id, exp) => Exval::ProcV(id, *exp, env),
+    UntypedASTMain::LetRecExp(id, para, exp1, exp2) => {
+      let dummyenv = RefCell::new(environment::empty());
+      let newenv = environment::extend(
+        id.clone(),
+        Exval::ProcV(para, *exp1, dummyenv.clone()),
+        env,
+      );
+      let _ = dummyenv.replace(newenv.clone());
+      eval_exp(newenv, *exp2)
+    }
+    UntypedASTMain::FunExp(id, exp) => Exval::ProcV(id, *exp, RefCell::new(env)),
     UntypedASTMain::Apply(exp1, exp2) => {
       let funval = eval_exp(env.clone(), *exp1);
       let arg = eval_exp(env, *exp2);
-      match funval {
+      match funval.clone() {
         Exval::ProcV(id, body, env2) => {
-          let newenv = environment::extend(id, arg, env2);
-          //println!("newenv: {:?}", newenv);
-          //println!("body: {:?}", body);
+          let newenv = environment::extend(id, arg, env2.into_inner());
+          println!("newenv: {:?}", newenv);
+          println!("body: {:?}", body);
           eval_exp(newenv, body)
         }
         Exval::PrimitiveV(id, len, argvec) => {

@@ -31,3 +31,4 @@ test:
 	target\debug\ralcu.exe test/22.txt
 	target\debug\ralcu.exe test/23.txt
 	target\debug\ralcu.exe test/let.txt
+	target\debug\ralcu.exe test/letrec.txt

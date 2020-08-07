@@ -26,6 +26,7 @@ pub enum TokenKind {
   COLON,
   COMMA,
   LETNONREC,
+  LETREC,
   LETAND,
   IN,
   LAMBDA,
@@ -321,6 +322,13 @@ fn lex_identifier(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexEr
     "let" => Ok((
       (
         TokenKind::LETNONREC,
+        types::Range::make_start_end(start, end_pos),
+      ),
+      end_pos,
+    )),
+    "let-rec" => Ok((
+      (
+        TokenKind::LETREC,
         types::Range::make_start_end(start, end_pos),
       ),
       end_pos,

@@ -1,4 +1,5 @@
 use clap::{App, Arg};
+use std::cell::RefCell;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -27,20 +28,7 @@ fn main() {
 #[allow(dead_code)]
 fn a(s: &str) {
   println!(" --- --- ---\n{}\n --- --- ---", s);
-  let env = environment::extend(
-    "i".to_owned(),
-    eval::Exval::IntV(1),
-    environment::extend(
-      "v".to_owned(),
-      eval::Exval::IntV(5),
-      environment::extend(
-        "x".to_owned(),
-        eval::Exval::IntV(10),
-        //eval::primitive_env(environment::empty()),
-        environment::empty(),
-      ),
-    ),
-  );
+  let env = environment::empty();
   let tokens = lexer::lex(s).unwrap();
   let ast_res = parser::parse(tokens);
   //println!("{:?}", ast_res);
