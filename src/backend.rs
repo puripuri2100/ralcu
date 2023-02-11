@@ -13,6 +13,6 @@ pub fn main(input: &types::UntypedAST) -> String {
     }
     types::UntypedASTMain::App(name, right) => format!("({name} {right:?})"),
     types::UntypedASTMain::IfThenElse(b, t, f) => format!("if {b:?} then {t:?} else {f:?})"),
-    types::UntypedASTMain::ContentOf(_, s) => s,
+    types::UntypedASTMain::Var(s) => s,
   }
 }

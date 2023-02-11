@@ -332,7 +332,7 @@ fn _parse_fn_let_var_sub(
 
       let (var_tok, _) = var_name;
       let var_name = lexer::get_string(var_tok).unwrap();
-      Var(var_name, utast)
+      LetVar(var_name, utast)
     }
     CodeType::Code1 => {
       let (_, pos) = _parse_token_Tok_MUT(tokens, pos)?;
@@ -345,7 +345,7 @@ fn _parse_fn_let_var_sub(
 
       let (var_tok, _) = var_name;
       let var_name = lexer::get_string(var_tok).unwrap();
-      VarMut(var_name, utast)
+      LetVarMut(var_name, utast)
     }
     _ => {
       return Err(ParseError::UnexpectedToken(
@@ -1243,7 +1243,7 @@ fn _parse_fn_bot(
 
       let (vartok, rng) = var;
       let varnm = lexer::get_string(vartok).unwrap();
-      (types::UntypedASTMain::ContentOf(Vec::new(), varnm), rng)
+      (types::UntypedASTMain::Var(varnm), rng)
     }
     _ => {
       return Err(ParseError::UnexpectedToken(

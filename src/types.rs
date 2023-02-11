@@ -36,7 +36,7 @@ pub enum UntypedASTMain {
   IfThenElse(Box<UntypedAST>, Box<UntypedAST>, Box<UntypedAST>),
   App(String, Vec<UntypedAST>),
   BinApply((String, Range), Box<UntypedAST>, Box<UntypedAST>),
-  ContentOf(Vec<String>, String),
+  Var(String),
 }
 
 pub type UntypedAST = (UntypedASTMain, Range);
@@ -44,8 +44,8 @@ pub type UntypedAST = (UntypedASTMain, Range);
 // `let`や`let mut`で定義された変数情報
 #[derive(Debug, Clone)]
 pub enum UntypedVarInfo {
-  Var(String, UntypedAST),
-  VarMut(String, UntypedAST),
+  LetVar(String, UntypedAST),
+  LetVarMut(String, UntypedAST),
   ReplaceVar(String, UntypedAST),
 }
 

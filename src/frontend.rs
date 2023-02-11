@@ -33,6 +33,6 @@ fn show_ast(ast: &types::UntypedAST) -> String {
       let r_s = show_ast(r);
       format!(" ({n_s} {l_s} {r_s}) ")
     }
-    types::UntypedASTMain::ContentOf(_, s) => format!(" ({s}) "),
+    types::UntypedASTMain::Var(s) => format!(" ({s}) "),
   }
 }

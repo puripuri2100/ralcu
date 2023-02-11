@@ -13,7 +13,7 @@ pub fn apply(input: &types::UntypedAST) -> UntypedAST {
     UntypedASTMain::BoolConst(_) => input.clone(),
     UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
     UntypedASTMain::App(name, args) => primitives_fn(name, args, r),
-    UntypedASTMain::ContentOf(_, _) => input.clone(),
+    UntypedASTMain::Var(_) => input.clone(),
     UntypedASTMain::IfThenElse(b, t, f) => {
       let (b_bool_ast, _) = apply(b);
       let t_ast = apply(t);
