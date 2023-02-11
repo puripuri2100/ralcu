@@ -401,7 +401,7 @@ app: "types::UntypedAST" = {
 
 // カンマ区切りにする
 app_sub: "Vec<types::UntypedAST>" = {
-  <utast1: bot> <utast2: add_sub2> => {"
+  <utast1: xif> <utast2: add_sub2> => {"
     let mut v = utast2;
     v.push(utast1);
     v"

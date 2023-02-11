@@ -23,9 +23,9 @@ fn main() {
   a(s);
   let s = "5.5 +. (float(5))";
   a(s);
-  let s = "int((float(5))) + 5";
+  let s = "int(float(5)) + 5";
   a(s);
-  let s = "sin((3.14 *. 2.0))";
+  let s = "sin(3.14 *. 2.0)";
   a(s);
   let s = "add(3, 2)";
   a(s);

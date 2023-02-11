@@ -1104,6 +1104,7 @@ fn _parse_fn_app_sub(
   let code_type = token1.ok_or(ParseError::Eof).map(|tok| match tok {
     (lexer::TokenKind::FALSE, _) => CodeType::Code0,
     (lexer::TokenKind::FLOATCONST(_), _) => CodeType::Code0,
+    (lexer::TokenKind::IF, _) => CodeType::Code0,
     (lexer::TokenKind::INTCONST(_), _) => CodeType::Code0,
     (lexer::TokenKind::LPAREN, _) => CodeType::Code0,
     (lexer::TokenKind::TRUE, _) => CodeType::Code0,
@@ -1113,7 +1114,7 @@ fn _parse_fn_app_sub(
   });
   let main = match code_type? {
     CodeType::Code0 => {
-      let (utast1, pos) = _parse_fn_bot(tokens, pos)?;
+      let (utast1, pos) = _parse_fn_xif(tokens, pos)?;
       let (utast2, pos) = _parse_fn_add_sub2(tokens, pos)?;
 
       _token_pos = pos;
