@@ -50,7 +50,7 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (IntConst(v1), IntConst(v2)) => (IntConst(v1 + v2), rng1.merge(&rng2)),
+        (IntConst(v1), IntConst(v2)) => (IntConst(v1 + v2), rng1.merge(rng2)),
         _ => panic!(),
       }
     }
@@ -66,7 +66,7 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (IntConst(v1), IntConst(v2)) => (IntConst(v1 - v2), rng1.merge(&rng2)),
+        (IntConst(v1), IntConst(v2)) => (IntConst(v1 - v2), rng1.merge(rng2)),
         _ => panic!(),
       }
     }
@@ -83,7 +83,7 @@ fn primitives_bin_fn(
       };
       match (v1, v2) {
         (IntConst(v1), types::UntypedASTMain::IntConst(v2)) => {
-          (IntConst(v1 * v2), rng1.merge(&rng2))
+          (IntConst(v1 * v2), rng1.merge(rng2))
         }
         _ => panic!(),
       }
@@ -100,7 +100,7 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (IntConst(v1), IntConst(v2)) => (IntConst(v1 / v2), rng1.merge(&rng2)),
+        (IntConst(v1), IntConst(v2)) => (IntConst(v1 / v2), rng1.merge(rng2)),
         _ => panic!(),
       }
     }
@@ -116,7 +116,7 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 + v2), rng1.merge(&rng2)),
+        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 + v2), rng1.merge(rng2)),
         _ => panic!(),
       }
     }
@@ -132,7 +132,7 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 - v2), rng1.merge(&rng2)),
+        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 - v2), rng1.merge(rng2)),
         _ => panic!(),
       }
     }
@@ -148,7 +148,7 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 * v2), rng1.merge(&rng2)),
+        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 * v2), rng1.merge(rng2)),
         _ => panic!(),
       }
     }
@@ -164,7 +164,7 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 / v2), rng1.merge(&rng2)),
+        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 / v2), rng1.merge(rng2)),
         _ => panic!(),
       }
     }
@@ -180,7 +180,7 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (IntConst(v1), IntConst(v2)) => (BoolConst(v1 < v2), rng1.merge(&rng2)),
+        (IntConst(v1), IntConst(v2)) => (BoolConst(v1 < v2), rng1.merge(rng2)),
         _ => panic!(),
       }
     }
@@ -196,7 +196,7 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (IntConst(v1), IntConst(v2)) => (BoolConst(v1 > v2), rng1.merge(&rng2)),
+        (IntConst(v1), IntConst(v2)) => (BoolConst(v1 > v2), rng1.merge(rng2)),
         _ => panic!(),
       }
     }
@@ -212,7 +212,7 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (IntConst(v1), IntConst(v2)) => (BoolConst(v1 == v2), rng1.merge(&rng2)),
+        (IntConst(v1), IntConst(v2)) => (BoolConst(v1 == v2), rng1.merge(rng2)),
         _ => panic!(),
       }
     }
@@ -225,7 +225,7 @@ fn primitives_fn(name: &str, args: &[UntypedAST], range: &Range) -> UntypedAST {
     "cos" => {
       if let Some(ast) = args.get(0) {
         match apply(ast) {
-          (FloatConst(f), _) => (FloatConst(f.cos()), range.clone()),
+          (FloatConst(f), _) => (FloatConst(f.cos()), *range),
           _ => panic!("arg err : {}", name),
         }
       } else {
@@ -235,7 +235,7 @@ fn primitives_fn(name: &str, args: &[UntypedAST], range: &Range) -> UntypedAST {
     "sin" => {
       if let Some(ast) = args.get(0) {
         match apply(ast) {
-          (FloatConst(f), _) => (FloatConst(f.sin()), range.clone()),
+          (FloatConst(f), _) => (FloatConst(f.sin()), *range),
           _ => panic!("arg err : {}", name),
         }
       } else {
@@ -245,7 +245,7 @@ fn primitives_fn(name: &str, args: &[UntypedAST], range: &Range) -> UntypedAST {
     "tab" => {
       if let Some(ast) = args.get(0) {
         match apply(ast) {
-          (FloatConst(f), _) => (FloatConst(f.tan()), range.clone()),
+          (FloatConst(f), _) => (FloatConst(f.tan()), *range),
           _ => panic!("arg err : {}", name),
         }
       } else {
@@ -255,7 +255,7 @@ fn primitives_fn(name: &str, args: &[UntypedAST], range: &Range) -> UntypedAST {
     "int" => {
       if let Some(ast) = args.get(0) {
         match apply(ast) {
-          (FloatConst(f), _) => (IntConst(f as i64), range.clone()),
+          (FloatConst(f), _) => (IntConst(f as i64), *range),
           _ => panic!("arg err : {}", name),
         }
       } else {
@@ -265,7 +265,7 @@ fn primitives_fn(name: &str, args: &[UntypedAST], range: &Range) -> UntypedAST {
     "float" => {
       if let Some(ast) = args.get(0) {
         match apply(ast) {
-          (IntConst(i), _) => (FloatConst(i as f64), range.clone()),
+          (IntConst(i), _) => (FloatConst(i as f64), *range),
           _ => panic!("arg err : {}", name),
         }
       } else {
@@ -275,7 +275,7 @@ fn primitives_fn(name: &str, args: &[UntypedAST], range: &Range) -> UntypedAST {
     "add" => {
       if let (Some(ast1), Some(ast2)) = (args.get(0), args.get(1)) {
         match (apply(ast1), apply(ast2)) {
-          ((IntConst(i1), _), (IntConst(i2), _)) => (IntConst(i1 + i2), range.clone()),
+          ((IntConst(i1), _), (IntConst(i2), _)) => (IntConst(i1 + i2), *range),
           _ => panic!("arg err : {}", name),
         }
       } else {

@@ -34,11 +34,11 @@ fn main() {
 #[allow(dead_code)]
 fn a(s: &str) {
   let ast = backend::main(&frontend::get_ast(s));
-  println!("{} => {}", s, ast)
+  println!("{s} => {ast}")
 }
 
 #[allow(dead_code)]
 fn b(s: &str) {
   let (ast, _) = frontend::get_ast(s);
-  println!("{} => {:?}", s, ast)
+  println!("{s} => {ast:?}")
 }

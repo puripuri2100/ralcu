@@ -43,20 +43,31 @@ pub type UntypedAST = (UntypedASTMain, Range);
 
 // `let`や`let mut`で定義された変数情報
 #[derive(Debug, Clone)]
-pub enum UntypeVarInfo {
+pub enum UntypedVarInfo {
   Var(String, UntypedAST),
   VarMut(String, UntypedAST),
   ReplaceVar(String, UntypedAST),
-  While(UntypedASTMain),
 }
 
 #[derive(Debug, Clone)]
 pub struct UntypedFnInfo {
   pub name: String,
   pub args: Vec<String>,
-  pub vars: Vec<UntypeVarInfo>,
+  pub vars: Vec<UntypedVarInfo>,
   pub return_var: UntypedAST,
   pub range: Range,
+}
+
+//impl UntypedFnInfo {
+//  pub fn to_untyped_fn(&self, env: &[UntypedAST]) -> UntypedFn {
+//    let mut lst =
+//  }
+//}
+
+#[derive(Debug, Clone)]
+pub struct UntypedFn {
+  pub vas: Vec<UntypedVarInfo>,
+  pub return_var: UntypedAST,
 }
 
 #[allow(non_snake_case)]
@@ -65,9 +76,9 @@ pub fn binary_operator(
   optok: (String, Range),
   utastR: UntypedAST,
 ) -> UntypedAST {
-  let (_, rngl) = utastL.clone();
+  let (_, rngl) = utastL;
   let (op, oprng) = optok;
-  let (_, rngr) = utastR.clone();
+  let (_, rngr) = utastR;
   let rng = rngl.merge(&rngr);
   (
     UntypedASTMain::BinApply((op, oprng), Box::new(utastL), Box::new(utastR)),

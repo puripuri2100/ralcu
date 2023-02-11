@@ -99,31 +99,78 @@ fn error_eof(r: types::Range) -> LexError {
 }
 
 fn is_digit(c: &char) -> bool {
-  match *c {
-    '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '0' => true,
-    _ => false,
-  }
+  matches!(
+    *c,
+    '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '0'
+  )
 }
 fn is_capital(c: &char) -> bool {
-  match *c {
-    'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O'
-    | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' => true,
-    _ => false,
-  }
+  matches!(
+    *c,
+    'A'
+      | 'B'
+      | 'C'
+      | 'D'
+      | 'E'
+      | 'F'
+      | 'G'
+      | 'H'
+      | 'I'
+      | 'J'
+      | 'K'
+      | 'L'
+      | 'M'
+      | 'N'
+      | 'O'
+      | 'P'
+      | 'Q'
+      | 'R'
+      | 'S'
+      | 'T'
+      | 'U'
+      | 'V'
+      | 'W'
+      | 'X'
+      | 'Y'
+      | 'Z'
+  )
 }
 fn is_small(c: &char) -> bool {
-  match *c {
-    'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o'
-    | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' => true,
-    _ => false,
-  }
+  matches!(
+    *c,
+    'a'
+      | 'b'
+      | 'c'
+      | 'd'
+      | 'e'
+      | 'f'
+      | 'g'
+      | 'h'
+      | 'i'
+      | 'j'
+      | 'k'
+      | 'l'
+      | 'm'
+      | 'n'
+      | 'o'
+      | 'p'
+      | 'q'
+      | 'r'
+      | 's'
+      | 't'
+      | 'u'
+      | 'v'
+      | 'w'
+      | 'x'
+      | 'y'
+      | 'z'
+  )
 }
 fn is_opsymbol(c: &char) -> bool {
-  match *c {
-    '+' | '-' | '*' | '/' | '^' | '&' | '|' | '!' | ':' | '=' | '<' | '>' | '~' | '\'' | '.'
-    | '?' => true,
-    _ => false,
-  }
+  matches!(
+    *c,
+    '+' | '-' | '*' | '/' | '^' | '&' | '|' | '!' | ':' | '=' | '<' | '>' | '~' | '\'' | '.' | '?'
+  )
 }
 
 // lexer関数
@@ -298,7 +345,7 @@ fn skip_spaces(input: &Vec<char>, pos: usize) -> Result<((), usize), LexError> {
 
 // 改行文字が来るまで読み飛ばす
 fn lex_comment(input: &Vec<char>, mut pos: usize) -> ((), usize) {
-  while pos < input.len() && (!(&'\n' == &input[pos])) {
+  while pos < input.len() && ('\n' != input[pos]) {
     pos += 1;
   }
   ((), pos)
@@ -311,7 +358,7 @@ fn lex_identifier(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexEr
   let end_pos = recognize_many(input, pos + 1, |c| {
     is_small(&c) || is_capital(&c) || is_digit(&c) || c == '_'
   });
-  let v_string: String = input[start..end_pos].into_iter().collect();
+  let v_string: String = input[start..end_pos].iter().collect();
   let v_str = v_string.as_str();
   match v_str {
     "true" => Ok((
@@ -382,7 +429,7 @@ fn lex_constructor(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexE
   let end_pos = recognize_many(input, pos + 1, |c| {
     is_small(&c) || is_capital(&c) || is_digit(&c) || c == '_'
   });
-  let v_string: String = input[start..end_pos].into_iter().collect();
+  let v_string: String = input[start..end_pos].iter().collect();
   Ok((
     (
       TokenKind::CONSTRUCTOR(v_string),
@@ -441,7 +488,7 @@ fn lex_comma(pos: usize) -> Result<(Token, usize), LexError> {
 fn lex_binop_times(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexError> {
   let start = pos;
   let end = recognize_many(input, start, |c| is_opsymbol(&c));
-  let bin_string: String = input[start..end].into_iter().collect();
+  let bin_string: String = input[start..end].iter().collect();
   Ok((
     (
       TokenKind::BINOP_TIMES(bin_string),
@@ -456,7 +503,7 @@ fn lex_binop_times(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexE
 fn lex_binop_divides(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexError> {
   let start = pos;
   let end = recognize_many(input, start, |c| is_opsymbol(&c));
-  let bin_string: String = input[start..end].into_iter().collect();
+  let bin_string: String = input[start..end].iter().collect();
   Ok((
     (
       TokenKind::BINOP_TIMES(bin_string),
@@ -471,7 +518,7 @@ fn lex_binop_divides(input: &Vec<char>, pos: usize) -> Result<(Token, usize), Le
 fn lex_binop_plus(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexError> {
   let start = pos;
   let end = recognize_many(input, start, |c| is_opsymbol(&c));
-  let bin_string: String = input[start..end].into_iter().collect();
+  let bin_string: String = input[start..end].iter().collect();
   Ok((
     (
       TokenKind::BINOP_TIMES(bin_string),
@@ -486,7 +533,7 @@ fn lex_binop_plus(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexEr
 fn lex_binop_minus(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexError> {
   let start = pos;
   let end = recognize_many(input, start, |c| is_opsymbol(&c));
-  let bin_string: String = input[start..end].into_iter().collect();
+  let bin_string: String = input[start..end].iter().collect();
   Ok((
     (
       TokenKind::BINOP_TIMES(bin_string),
@@ -501,7 +548,7 @@ fn lex_binop_minus(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexE
 fn lex_binop_hat(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexError> {
   let start = pos;
   let end = recognize_many(input, start, |c| is_opsymbol(&c));
-  let bin_string: String = input[start..end].into_iter().collect();
+  let bin_string: String = input[start..end].iter().collect();
   Ok((
     (
       TokenKind::BINOP_TIMES(bin_string),
@@ -516,7 +563,7 @@ fn lex_binop_hat(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexErr
 fn lex_binop_amp(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexError> {
   let start = pos;
   let end = recognize_many(input, start, |c| is_opsymbol(&c));
-  let bin_string: String = input[start..end].into_iter().collect();
+  let bin_string: String = input[start..end].iter().collect();
   Ok((
     (
       TokenKind::BINOP_TIMES(bin_string),
@@ -531,7 +578,7 @@ fn lex_binop_amp(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexErr
 fn lex_binop_bar(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexError> {
   let start = pos;
   let end = recognize_many(input, start, |c| is_opsymbol(&c));
-  let bin_string: String = input[start..end].into_iter().collect();
+  let bin_string: String = input[start..end].iter().collect();
   Ok((
     (
       TokenKind::BINOP_TIMES(bin_string),
@@ -546,7 +593,7 @@ fn lex_binop_bar(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexErr
 fn lex_binop_gt(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexError> {
   let start = pos;
   let end = recognize_many(input, start, |c| is_opsymbol(&c));
-  let bin_string: String = input[start..end].into_iter().collect();
+  let bin_string: String = input[start..end].iter().collect();
   Ok((
     (
       TokenKind::BINOP_TIMES(bin_string),
@@ -561,7 +608,7 @@ fn lex_binop_gt(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexErro
 fn lex_binop_lt(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexError> {
   let start = pos;
   let end = recognize_many(input, start, |c| is_opsymbol(&c));
-  let bin_string: String = input[start..end].into_iter().collect();
+  let bin_string: String = input[start..end].iter().collect();
   Ok((
     (
       TokenKind::BINOP_TIMES(bin_string),
@@ -576,7 +623,7 @@ fn lex_binop_lt(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexErro
 fn lex_binop_eq(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexError> {
   let start = pos;
   let end = recognize_many(input, start, |c| is_opsymbol(&c));
-  let bin_string: String = input[start..end].into_iter().collect();
+  let bin_string: String = input[start..end].iter().collect();
   Ok((
     (
       TokenKind::BINOP_TIMES(bin_string),
@@ -606,12 +653,12 @@ fn lex_int_or_float(input: &Vec<char>, pos: usize) -> Result<(Token, usize), Lex
     int_end
   };
   let range = types::Range::make_start_end(start, end);
-  let tok_string: String = input[start..end].into_iter().collect();
+  let tok_string: String = input[start..end].iter().collect();
   let tok = if is_float {
     let fl_res = tok_string.parse();
     match fl_res {
       Ok(f) => TokenKind::FLOATCONST(f),
-      Err(_) => return Err(error_undefined_token(tok_string.to_string(), range)),
+      Err(_) => return Err(error_undefined_token(tok_string, range)),
     }
   } else {
     let int_res = tok_string.parse();

@@ -5,7 +5,12 @@
 use std::cmp::Ordering;
 
 use super::lexer;
-use super::types;
+use super::types::{
+  self, UntypedAST,
+  UntypedASTMain::*,
+  UntypedFnInfo,
+  UntypedVarInfo::{self, *},
+};
 
 #[derive(Debug, Clone)]
 pub enum ParseError {
@@ -19,7 +24,7 @@ pub enum ParseError {
 #[allow(unused_parens)]
 pub fn parse(
   tokens: Vec<lexer::Token>,
-) -> Result<(Vec<types::UntypedAST>, types::UntypedAST), ParseError> {
+) -> Result<(Vec<types::UntypedFnInfo>, types::UntypedAST), ParseError> {
   let (ret, pos) = _parse_fn_main(&tokens, 0)?;
   match pos.cmp(&tokens.len()) {
     Ordering::Equal => Ok(ret),
@@ -35,24 +40,45 @@ pub fn parse(
 fn _parse_fn_main(
   tokens: &[lexer::Token],
   pos: usize,
-) -> Result<((Vec<types::UntypedAST>, types::UntypedAST), usize), ParseError> {
+) -> Result<((Vec<types::UntypedFnInfo>, types::UntypedAST), usize), ParseError> {
   let mut _token_pos = pos;
   let token1 = tokens.get(pos);
   enum CodeType {
     Code0,
+    Code1,
     Other,
   }
   let code_type = token1.ok_or(ParseError::Eof).map(|tok| match tok {
+    (lexer::TokenKind::FALSE, _) => CodeType::Code0,
+    (lexer::TokenKind::FLOATCONST(_), _) => CodeType::Code0,
+    (lexer::TokenKind::FN, _) => CodeType::Code1,
+    (lexer::TokenKind::IF, _) => CodeType::Code0,
+    (lexer::TokenKind::INTCONST(_), _) => CodeType::Code0,
+    (lexer::TokenKind::LPAREN, _) => CodeType::Code0,
+    (lexer::TokenKind::TRUE, _) => CodeType::Code0,
+    (lexer::TokenKind::VAR(_), _) => CodeType::Code0,
+
     _ => CodeType::Other,
   });
   let main = match code_type? {
     CodeType::Code0 => {
+      let (utast, pos) = _parse_fn_xif(tokens, pos)?;
+      let (_, pos) = _parse_token_Tok_EOF(tokens, pos)?;
+
+      _token_pos = pos;
+
+      (Vec::new(), utast)
+    }
+    CodeType::Code1 => {
       let (fn_lst, pos) = _parse_fn_fn_lst(tokens, pos)?;
       let (utast, pos) = _parse_fn_xif(tokens, pos)?;
       let (_, pos) = _parse_token_Tok_EOF(tokens, pos)?;
 
       _token_pos = pos;
-      (fn_lst, utast)
+
+      let mut l = fn_lst;
+      l.reverse();
+      (l, utast)
     }
     _ => {
       return Err(ParseError::UnexpectedToken(
@@ -70,17 +96,262 @@ fn _parse_fn_main(
 fn _parse_fn_fn_lst(
   tokens: &[lexer::Token],
   pos: usize,
-) -> Result<(Vec<types::UntypedAST>, usize), ParseError> {
+) -> Result<(Vec<types::UntypedFnInfo>, usize), ParseError> {
   let mut _token_pos = pos;
   let token1 = tokens.get(pos);
   enum CodeType {
+    Code0,
     Other,
   }
   let code_type = token1.ok_or(ParseError::Eof).map(|tok| match tok {
+    (lexer::TokenKind::FN, _) => CodeType::Code0,
+
     _ => CodeType::Other,
   });
   let main = match code_type? {
+    CodeType::Code0 => {
+      let (make_fn, pos) = _parse_fn_fn(tokens, pos)?;
+      let (sublst, pos) = _parse_fn_fn_lst(tokens, pos)?;
+
+      _token_pos = pos;
+
+      let mut l = sublst;
+      l.push(make_fn);
+      l
+    }
     _ => Vec::new(),
+  };
+  Ok((main, _token_pos))
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+#[allow(clippy::type_complexity)]
+fn _parse_fn_fn(
+  tokens: &[lexer::Token],
+  pos: usize,
+) -> Result<(types::UntypedFnInfo, usize), ParseError> {
+  let mut _token_pos = pos;
+  let token1 = tokens.get(pos);
+  enum CodeType {
+    Code0,
+    Other,
+  }
+  let code_type = token1.ok_or(ParseError::Eof).map(|tok| match tok {
+    (lexer::TokenKind::FN, _) => CodeType::Code0,
+
+    _ => CodeType::Other,
+  });
+  let main = match code_type? {
+    CodeType::Code0 => {
+      let (s, pos) = _parse_token_Tok_FN(tokens, pos)?;
+      let (name, pos) = _parse_token_Tok_VAR(tokens, pos)?;
+      let (_, pos) = _parse_token_Tok_LPAREN(tokens, pos)?;
+      let (args, pos) = _parse_fn_var_comma_lst(tokens, pos)?;
+      let (_, pos) = _parse_token_Tok_RPAREN(tokens, pos)?;
+      let (_, pos) = _parse_token_Tok_LBRACKET(tokens, pos)?;
+      let (vars, pos) = _parse_fn_let_var_lst(tokens, pos)?;
+      let (return_var, pos) = _parse_fn_xif(tokens, pos)?;
+      let (l, pos) = _parse_token_Tok_RBRACKET(tokens, pos)?;
+
+      _token_pos = pos;
+
+      let (_, s) = s;
+      let (_, l) = l;
+      let range = s.merge(&l);
+      let (name_v, _) = name;
+      let name = lexer::get_string(name_v).unwrap();
+      types::UntypedFnInfo {
+        name,
+        args,
+        vars,
+        return_var,
+        range,
+      }
+    }
+    _ => {
+      return Err(ParseError::UnexpectedToken(
+        tokens.iter().next().unwrap().clone(),
+      ))
+    }
+  };
+  Ok((main, _token_pos))
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+#[allow(clippy::type_complexity)]
+fn _parse_fn_var_comma_lst(
+  tokens: &[lexer::Token],
+  pos: usize,
+) -> Result<(Vec<String>, usize), ParseError> {
+  let mut _token_pos = pos;
+  let token1 = tokens.get(pos);
+  enum CodeType {
+    Code0,
+    Other,
+  }
+  let code_type = token1.ok_or(ParseError::Eof).map(|tok| match tok {
+    (lexer::TokenKind::VAR(_), _) => CodeType::Code0,
+
+    _ => CodeType::Other,
+  });
+  let main = match code_type? {
+    CodeType::Code0 => {
+      let (utast1, pos) = _parse_token_Tok_VAR(tokens, pos)?;
+      let (utast2, pos) = _parse_fn_var_commma_lst_sub(tokens, pos)?;
+
+      _token_pos = pos;
+
+      let (tok, _) = utast1;
+      let mut v = utast2;
+      v.push(lexer::get_string(tok).unwrap());
+      v
+    }
+    _ => Vec::new(),
+  };
+  Ok((main, _token_pos))
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+#[allow(clippy::type_complexity)]
+fn _parse_fn_var_commma_lst_sub(
+  tokens: &[lexer::Token],
+  pos: usize,
+) -> Result<(Vec<String>, usize), ParseError> {
+  let mut _token_pos = pos;
+  let token1 = tokens.get(pos);
+  enum CodeType {
+    Code0,
+    Other,
+  }
+  let code_type = token1.ok_or(ParseError::Eof).map(|tok| match tok {
+    (lexer::TokenKind::COMMA, _) => CodeType::Code0,
+
+    _ => CodeType::Other,
+  });
+  let main = match code_type? {
+    CodeType::Code0 => {
+      let (_, pos) = _parse_token_Tok_COMMA(tokens, pos)?;
+      let (lst, pos) = _parse_fn_var_commma_lst_sub(tokens, pos)?;
+
+      _token_pos = pos;
+      lst
+    }
+    _ => Vec::new(),
+  };
+  Ok((main, _token_pos))
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+#[allow(clippy::type_complexity)]
+fn _parse_fn_let_var_lst(
+  tokens: &[lexer::Token],
+  pos: usize,
+) -> Result<(Vec<UntypedVarInfo>, usize), ParseError> {
+  let mut _token_pos = pos;
+  let token1 = tokens.get(pos);
+  enum CodeType {
+    Code0,
+    Code1,
+    Other,
+  }
+  let code_type = token1.ok_or(ParseError::Eof).map(|tok| match tok {
+    (lexer::TokenKind::LET, _) => CodeType::Code1,
+    (lexer::TokenKind::VAR(_), _) => CodeType::Code0,
+
+    _ => CodeType::Other,
+  });
+  let main = match code_type? {
+    CodeType::Code0 => {
+      let (var_name, pos) = _parse_token_Tok_VAR(tokens, pos)?;
+      let (_, pos) = _parse_token_Tok_DEF_EQ(tokens, pos)?;
+      let (utast, pos) = _parse_fn_xif(tokens, pos)?;
+      let (_, pos) = _parse_token_Tok_SEMICOLON(tokens, pos)?;
+      let (lst, pos) = _parse_fn_let_var_lst(tokens, pos)?;
+
+      _token_pos = pos;
+
+      let mut l = lst;
+      let (var_tok, _) = var_name;
+      let var_name = lexer::get_string(var_tok).unwrap();
+      l.push(ReplaceVar(var_name, utast));
+      l
+    }
+    CodeType::Code1 => {
+      let (_, pos) = _parse_token_Tok_LET(tokens, pos)?;
+      let (v, pos) = _parse_fn_let_var_sub(tokens, pos)?;
+      let (lst, pos) = _parse_fn_let_var_lst(tokens, pos)?;
+
+      _token_pos = pos;
+
+      let mut l = lst;
+      l.push(v);
+      l
+    }
+    _ => Vec::new(),
+  };
+  Ok((main, _token_pos))
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+#[allow(clippy::type_complexity)]
+fn _parse_fn_let_var_sub(
+  tokens: &[lexer::Token],
+  pos: usize,
+) -> Result<(UntypedVarInfo, usize), ParseError> {
+  let mut _token_pos = pos;
+  let token1 = tokens.get(pos);
+  enum CodeType {
+    Code0,
+    Code1,
+    Other,
+  }
+  let code_type = token1.ok_or(ParseError::Eof).map(|tok| match tok {
+    (lexer::TokenKind::MUT, _) => CodeType::Code1,
+    (lexer::TokenKind::VAR(_), _) => CodeType::Code0,
+
+    _ => CodeType::Other,
+  });
+  let main = match code_type? {
+    CodeType::Code0 => {
+      let (var_name, pos) = _parse_token_Tok_VAR(tokens, pos)?;
+      let (_, pos) = _parse_token_Tok_DEF_EQ(tokens, pos)?;
+      let (utast, pos) = _parse_fn_xif(tokens, pos)?;
+      let (_, pos) = _parse_token_Tok_SEMICOLON(tokens, pos)?;
+
+      _token_pos = pos;
+
+      let (var_tok, _) = var_name;
+      let var_name = lexer::get_string(var_tok).unwrap();
+      Var(var_name, utast)
+    }
+    CodeType::Code1 => {
+      let (_, pos) = _parse_token_Tok_MUT(tokens, pos)?;
+      let (var_name, pos) = _parse_token_Tok_VAR(tokens, pos)?;
+      let (_, pos) = _parse_token_Tok_DEF_EQ(tokens, pos)?;
+      let (utast, pos) = _parse_fn_xif(tokens, pos)?;
+      let (_, pos) = _parse_token_Tok_SEMICOLON(tokens, pos)?;
+
+      _token_pos = pos;
+
+      let (var_tok, _) = var_name;
+      let var_name = lexer::get_string(var_tok).unwrap();
+      VarMut(var_name, utast)
+    }
+    _ => {
+      return Err(ParseError::UnexpectedToken(
+        tokens.iter().next().unwrap().clone(),
+      ))
+    }
   };
   Ok((main, _token_pos))
 }
@@ -1256,6 +1527,36 @@ fn _parse_token_Tok_RPAREN(
 #[allow(non_snake_case)]
 #[allow(unused_parens)]
 #[allow(clippy::type_complexity)]
+fn _parse_token_Tok_LBRACKET(
+  tokens: &[lexer::Token],
+  pos: usize,
+) -> Result<(lexer::Token, usize), ParseError> {
+  let token1 = tokens.get(pos);
+  token1.ok_or(ParseError::Eof).and_then(|tok| match tok {
+    (lexer::TokenKind::LBRACKET, _) => Ok((tok.clone(), pos + 1)),
+    _ => Err(ParseError::UnexpectedToken(tok.clone())),
+  })
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+#[allow(clippy::type_complexity)]
+fn _parse_token_Tok_RBRACKET(
+  tokens: &[lexer::Token],
+  pos: usize,
+) -> Result<(lexer::Token, usize), ParseError> {
+  let token1 = tokens.get(pos);
+  token1.ok_or(ParseError::Eof).and_then(|tok| match tok {
+    (lexer::TokenKind::RBRACKET, _) => Ok((tok.clone(), pos + 1)),
+    _ => Err(ParseError::UnexpectedToken(tok.clone())),
+  })
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+#[allow(clippy::type_complexity)]
 fn _parse_token_Tok_SEMICOLON(
   tokens: &[lexer::Token],
   pos: usize,
@@ -1398,6 +1699,21 @@ fn _parse_token_Tok_LET(
   let token1 = tokens.get(pos);
   token1.ok_or(ParseError::Eof).and_then(|tok| match tok {
     (lexer::TokenKind::LET, _) => Ok((tok.clone(), pos + 1)),
+    _ => Err(ParseError::UnexpectedToken(tok.clone())),
+  })
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused_parens)]
+#[allow(clippy::type_complexity)]
+fn _parse_token_Tok_MUT(
+  tokens: &[lexer::Token],
+  pos: usize,
+) -> Result<(lexer::Token, usize), ParseError> {
+  let token1 = tokens.get(pos);
+  token1.ok_or(ParseError::Eof).and_then(|tok| match tok {
+    (lexer::TokenKind::MUT, _) => Ok((tok.clone(), pos + 1)),
     _ => Err(ParseError::UnexpectedToken(tok.clone())),
   })
 }

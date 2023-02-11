@@ -1,5 +1,5 @@
 "use super::lexer;"
-"use super::types;"
+"use super::types::{self, UntypedFnInfo, UntypedVarInfo::{self, *}, UntypedASTMain::*, UntypedAST};"
 
 
 grammar;
@@ -42,32 +42,34 @@ extern {
 }
 
 pub main: "(Vec<types::UntypedFnInfo>, types::UntypedAST)" = {
-  <fn_lst: fn_lst><utast: xif> <_: Tok_EOF> => {"
+  <fn_lst: fn_lst> <utast: xif> <_: Tok_EOF> => {"
     let mut l = fn_lst;
     l.reverse();
     (l, utast)
+  "},
+  <utast: xif> <_: Tok_EOF> => {"
+    (Vec::new(), utast)
   "},
 };
 
 
 fn_lst: "Vec<types::UntypedFnInfo>" = {
   <make_fn: fn> <sublst: fn_lst> => {"
-    let mut l = fn_lst;
+    let mut l = sublst;
     l.push(make_fn);
     l
-  "}
+  "},
   => {"Vec::new()"}
 };
 
 
 fn: "types::UntypedFnInfo" = {
-  <s: Tok_FN> <name: Tok_VAR> <_: tok_LPAREN> <args: var_comma_lst> <_: Tok_RPAREN> <_: Tok_LBRACKET> <vars: let_var_lst> <return_var: xif> <l:RBRACKET> => {"
+  <s: Tok_FN> <name: Tok_VAR> <_: Tok_LPAREN> <args: var_comma_lst> <_: Tok_RPAREN> <_: Tok_LBRACKET> <vars: let_var_lst> <return_var: xif> <l:Tok_RBRACKET> => {"
     let (_,s) = s;
     let (_,l) = l;
     let range = s.merge(&l);
     let (name_v,_) = name;
     let name = lexer::get_string(name_v).unwrap();
-    let (return_var,_) = return_var;
     types::UntypedFnInfo {
       name,
       args,
@@ -94,6 +96,37 @@ var_commma_lst_sub: "Vec<String>" = {
   <_:Tok_COMMA> <lst: var_commma_lst_sub> => {"lst"},
   => {"Vec::new()"}
 };
+
+
+let_var_lst: "Vec<UntypedVarInfo>" = {
+  <var_name: Tok_VAR> <_:Tok_DEF_EQ> <utast: xif> <_:Tok_SEMICOLON> <lst: let_var_lst> => {"
+    let mut l = lst;
+    let (var_tok,_) = var_name;
+    let var_name = lexer::get_string(var_tok).unwrap();
+    l.push(ReplaceVar(var_name, utast));
+    l
+  "},
+  <_:Tok_LET> <v: let_var_sub> <lst: let_var_lst> => {"
+    let mut l = lst;
+    l.push(v);
+    l
+  "},
+  => {"Vec::new()"}
+};
+
+let_var_sub: "UntypedVarInfo" = {
+  <var_name: Tok_VAR> <_:Tok_DEF_EQ> <utast: xif> <_:Tok_SEMICOLON> => {"
+    let (var_tok,_) = var_name;
+    let var_name = lexer::get_string(var_tok).unwrap();
+    Var(var_name, utast)
+  "},
+  <_: Tok_MUT> <var_name: Tok_VAR> <_:Tok_DEF_EQ> <utast: xif> <_:Tok_SEMICOLON> => {"
+    let (var_tok,_) = var_name;
+    let var_name = lexer::get_string(var_tok).unwrap();
+    VarMut(var_name, utast)
+  "},
+};
+
 
 // IF <lor> THEN <lor> ELSE <lor>
 xif: "types::UntypedAST" = {
