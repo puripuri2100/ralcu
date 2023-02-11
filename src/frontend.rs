@@ -5,7 +5,7 @@ pub mod parser;
 
 pub fn get_ast(input: &str) -> types::UntypedAST {
   let tokens = lexer::lex(input).unwrap();
-  let ast = parser::parse(tokens).unwrap();
+  let (fn_lst, ast) = parser::parse(tokens).unwrap();
   ast
 }
 
@@ -22,10 +22,10 @@ fn show_ast(ast: &types::UntypedAST) -> String {
       let f_s = show_ast(f);
       format!(" if {} then {} else {} ", b_s, t_s, f_s)
     }
-    types::UntypedASTMain::Apply(fnast, arg) => {
-      let name_s = show_ast(&fnast);
-      let arg_s = show_ast(&arg);
-      format!(" ({} {}) ", name_s, arg_s)
+    types::UntypedASTMain::App(name_s, args) => {
+      let arg_s_v = args.iter().map(show_ast).collect::<Vec<_>>();
+      let arg_s = arg_s_v.join(",");
+      format!("{} ({}) ", name_s, arg_s)
     }
     types::UntypedASTMain::BinApply(n, l, r) => {
       let (n_s, _) = n;

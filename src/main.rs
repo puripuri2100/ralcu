@@ -1,6 +1,3 @@
-use std::fs::File;
-use std::io::prelude::*;
-
 pub mod backend;
 pub mod frontend;
 pub mod types;
@@ -20,18 +17,18 @@ fn main() {
   a(s);
   let s = "5 + (if 2 < 3 then 2 + 3 else 2 * 3)";
   a(s);
-  let s = "a b c d";
+  let s = "cos(3.14)";
   a(s);
-  //  let s = "5 + int(5.6)";
-  //  a(s);
-  //  let s = "5.5 +. float(5)";
-  //  a(s);
-  //  let s = "int(float(5)) + 5";
-  //  a(s);
-  //  let s = "sin(3.14 *. 2.0)";
-  //  a(s);
-  //  let s = "int_plus(3, 2)";
-  //  a(s);
+  let s = "5 + (int(5.6))";
+  a(s);
+  let s = "5.5 +. (float(5))";
+  a(s);
+  let s = "int((float(5))) + 5";
+  a(s);
+  let s = "sin((3.14 *. 2.0))";
+  a(s);
+  let s = "add(3, 2)";
+  a(s);
 }
 
 #[allow(dead_code)]

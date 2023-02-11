@@ -34,12 +34,30 @@ pub enum UntypedASTMain {
   FloatConst(f64),
   BoolConst(bool),
   IfThenElse(Box<UntypedAST>, Box<UntypedAST>, Box<UntypedAST>),
-  Apply(Box<UntypedAST>, Box<UntypedAST>),
+  App(String, Vec<UntypedAST>),
   BinApply((String, Range), Box<UntypedAST>, Box<UntypedAST>),
   ContentOf(Vec<String>, String),
 }
 
 pub type UntypedAST = (UntypedASTMain, Range);
+
+// `let`や`let mut`で定義された変数情報
+#[derive(Debug, Clone)]
+pub enum UntypeVarInfo {
+  Var(String, UntypedAST),
+  VarMut(String, UntypedAST),
+  ReplaceVar(String, UntypedAST),
+  While(UntypedASTMain),
+}
+
+#[derive(Debug, Clone)]
+pub struct UntypedFnInfo {
+  pub name: String,
+  pub args: Vec<String>,
+  pub vars: Vec<UntypeVarInfo>,
+  pub return_var: UntypedAST,
+  pub range: Range,
+}
 
 #[allow(non_snake_case)]
 pub fn binary_operator(

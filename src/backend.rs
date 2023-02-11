@@ -11,7 +11,7 @@ pub fn main(input: &types::UntypedAST) -> String {
     types::UntypedASTMain::BinApply(name, left, right) => {
       format!("({:?} {:?} {:?})", name, left, right)
     }
-    types::UntypedASTMain::Apply(left, right) => format!("({:?} {:?})", left, right),
+    types::UntypedASTMain::App(name, right) => format!("({} {:?})", name, right),
     types::UntypedASTMain::IfThenElse(b, t, f) => format!("if {:?} then {:?} else {:?})", b, t, f),
     types::UntypedASTMain::ContentOf(_, s) => format!("{}", s),
   }

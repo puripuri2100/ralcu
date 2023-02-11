@@ -22,6 +22,8 @@ pub enum TokenKind {
   BINOP_EQ(String),
   LPAREN,
   RPAREN,
+  LBRACKET,
+  RBRACKET,
   SEMICOLON,
   COLON,
   COMMA,
@@ -30,6 +32,10 @@ pub enum TokenKind {
   IF,
   THEN,
   ELSE,
+  FN,
+  LET,
+  MUT,
+  WHILE,
 }
 
 // 位置情報とのタプルで表す
@@ -177,6 +183,12 @@ fn lex_program(input: &Vec<char>, pos: usize) -> Result<(Vec<Token>, usize), Lex
       }
       ')' => {
         lex_a_token!(lex_rparen(pos));
+      }
+      '{' => {
+        lex_a_token!(lex_lbracket(pos));
+      }
+      '}' => {
+        lex_a_token!(lex_rbracket(pos));
       }
       ';' => {
         lex_a_token!(lex_semicolon(pos));
@@ -334,6 +346,25 @@ fn lex_identifier(input: &Vec<char>, pos: usize) -> Result<(Token, usize), LexEr
       ),
       end_pos,
     )),
+    "fn" => Ok((
+      (TokenKind::FN, types::Range::make_start_end(start, end_pos)),
+      end_pos,
+    )),
+    "let" => Ok((
+      (TokenKind::LET, types::Range::make_start_end(start, end_pos)),
+      end_pos,
+    )),
+    "mut" => Ok((
+      (TokenKind::MUT, types::Range::make_start_end(start, end_pos)),
+      end_pos,
+    )),
+    "while" => Ok((
+      (
+        TokenKind::WHILE,
+        types::Range::make_start_end(start, end_pos),
+      ),
+      end_pos,
+    )),
     _ => Ok((
       (
         TokenKind::VAR(v_string),
@@ -383,6 +414,14 @@ fn lex_lparen(pos: usize) -> Result<(Token, usize), LexError> {
 
 fn lex_rparen(pos: usize) -> Result<(Token, usize), LexError> {
   Ok(((TokenKind::RPAREN, types::Range::make(pos, 1)), pos + 1))
+}
+
+fn lex_lbracket(pos: usize) -> Result<(Token, usize), LexError> {
+  Ok(((TokenKind::LBRACKET, types::Range::make(pos, 1)), pos + 1))
+}
+
+fn lex_rbracket(pos: usize) -> Result<(Token, usize), LexError> {
+  Ok(((TokenKind::RBRACKET, types::Range::make(pos, 1)), pos + 1))
 }
 
 fn lex_semicolon(pos: usize) -> Result<(Token, usize), LexError> {

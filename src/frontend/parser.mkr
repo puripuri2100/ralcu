@@ -24,6 +24,8 @@ extern {
     Tok_BINOP_EQ      => "(lexer::TokenKind::BINOP_EQ      (_), _)",
     Tok_LPAREN        => "(lexer::TokenKind::LPAREN           , _)",
     Tok_RPAREN        => "(lexer::TokenKind::RPAREN           , _)",
+    Tok_LBRACKET      => "(lexer::TokenKind::LBRACKET         , _)",
+    Tok_RBRACKET      => "(lexer::TokenKind::RBRACKET         , _)",
     Tok_SEMICOLON     => "(lexer::TokenKind::SEMICOLON        , _)",
     Tok_COLON         => "(lexer::TokenKind::COLON            , _)",
     Tok_COMMA         => "(lexer::TokenKind::COMMA            , _)",
@@ -32,14 +34,68 @@ extern {
     Tok_IF            => "(lexer::TokenKind::IF               , _)",
     Tok_THEN          => "(lexer::TokenKind::THEN             , _)",
     Tok_ELSE          => "(lexer::TokenKind::ELSE             , _)",
+    Tok_FN            => "(lexer::TokenKind::FN               , _)",
+    Tok_LET           => "(lexer::TokenKind::LET              , _)",
+    Tok_MUT           => "(lexer::TokenKind::MUT              , _)",
+    Tok_WHILE         => "(lexer::TokenKind::WHILE            , _)",
   }
 }
 
-pub main: "types::UntypedAST" = {
-  <utast: xif> <_: Tok_EOF> => {"utast"},
+pub main: "(Vec<types::UntypedFnInfo>, types::UntypedAST)" = {
+  <fn_lst: fn_lst><utast: xif> <_: Tok_EOF> => {"
+    let mut l = fn_lst;
+    l.reverse();
+    (l, utast)
+  "},
 };
 
 
+fn_lst: "Vec<types::UntypedFnInfo>" = {
+  <make_fn: fn> <sublst: fn_lst> => {"
+    let mut l = fn_lst;
+    l.push(make_fn);
+    l
+  "}
+  => {"Vec::new()"}
+};
+
+
+fn: "types::UntypedFnInfo" = {
+  <s: Tok_FN> <name: Tok_VAR> <_: tok_LPAREN> <args: var_comma_lst> <_: Tok_RPAREN> <_: Tok_LBRACKET> <vars: let_var_lst> <return_var: xif> <l:RBRACKET> => {"
+    let (_,s) = s;
+    let (_,l) = l;
+    let range = s.merge(&l);
+    let (name_v,_) = name;
+    let name = lexer::get_string(name_v).unwrap();
+    let (return_var,_) = return_var;
+    types::UntypedFnInfo {
+      name,
+      args,
+      vars,
+      return_var,
+      range,
+    }"}
+};
+
+
+
+// カンマ区切りにする
+var_comma_lst: "Vec<String>" = {
+  <utast1: Tok_VAR> <utast2: var_commma_lst_sub> => {"
+    let (tok, _) = utast1;
+    let mut v = utast2;
+    v.push(lexer::get_string(tok).unwrap());
+    v"
+  },
+  => {"Vec::new()"}
+};
+
+var_commma_lst_sub: "Vec<String>" = {
+  <_:Tok_COMMA> <lst: var_commma_lst_sub> => {"lst"},
+  => {"Vec::new()"}
+};
+
+// IF <lor> THEN <lor> ELSE <lor>
 xif: "types::UntypedAST" = {
   <opn: Tok_IF> <utast1: lor> <_: Tok_THEN> <utast2: lor> <_: Tok_ELSE> <utast3: lor> => {"
     let (_,rngs) = opn;
@@ -247,7 +303,7 @@ lpl_mi_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
                                                         => {"None"},
 };
 
-//<lti_div> := <bot> <lti_div_sub>
+//<lti_div> := <app> <lti_div_sub>
 lti_div: "types::UntypedAST" = {
   <utast: app> <utaststr2opt: lti_div_sub> => {"
     match utaststr2opt {
@@ -291,35 +347,39 @@ lti_div_sub: "Option<(lexer::Token, types::UntypedAST)>" = {
 };
 
 
+// 関数
+// <app> := VAR LPAREN  RPAREN
 app: "types::UntypedAST" = {
-  <utast1: bot> <utast2_lst: app_sub> => {"
-    let mut v = utast2_lst;
+  <var: Tok_VAR> <_:Tok_LPAREN> <lst: app_sub> <_:Tok_RPAREN> => {"
+    let (name,var_range) = var;
+    let name = lexer::get_string(name).unwrap();
+    let mut v = lst;
     v.reverse();
-    let mut utast = utast1;
-    for utast2 in v.iter() {
-      let (_, rng1) = utast;
-      let (_, rng2) = utast2;
-      let rng = rng1.merge(&rng2);
-      let new_utast = (types::UntypedASTMain::Apply(
-        Box::new(utast), Box::new(utast2.clone())
-      ), rng);
-      utast = new_utast;
-    };
-    utast"
+    let rng =
+      match v.get(0) {
+        None => var_range,
+        Some((_,r)) => var_range.merge(r)
+      };
+    (types::UntypedASTMain::App(name, v.clone()), rng)"
   },
+  <v: bot> => {"v"}
 };
 
 
-// 左結合させたいので、とりあえずリストにして、<app>でforを使って左結合させる
+// カンマ区切りにする
 app_sub: "Vec<types::UntypedAST>" = {
-  <utast1: bot> <utast2_lst: app_sub> => {"
-    let mut v = utast2_lst;
+  <utast1: bot> <utast2: add_sub2> => {"
+    let mut v = utast2;
     v.push(utast1);
     v"
   },
   => {"Vec::new()"}
 };
 
+add_sub2: "Vec<types::UntypedAST>" = {
+  <_:Tok_COMMA> <lst: app_sub> => {"lst"},
+  => {"Vec::new()"}
+};
 
 
 bot: "types::UntypedAST" = {

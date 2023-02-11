@@ -1,20 +1,25 @@
-use super::types;
+use core::panic;
 
-pub fn apply(input: &types::UntypedAST) -> types::UntypedAST {
-  let (ast, _) = input;
+use super::types::{
+  self, Range, UntypedAST,
+  UntypedASTMain::{self, *},
+};
+
+pub fn apply(input: &types::UntypedAST) -> UntypedAST {
+  let (ast, r) = input;
   match ast {
-    types::UntypedASTMain::IntConst(_) => input.clone(),
-    types::UntypedASTMain::FloatConst(_) => input.clone(),
-    types::UntypedASTMain::BoolConst(_) => input.clone(),
-    types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
-    types::UntypedASTMain::Apply(utast1, utast2) => input.clone(), //primitives_fn(utast1, utast2),
-    types::UntypedASTMain::ContentOf(_, _) => input.clone(),
-    types::UntypedASTMain::IfThenElse(b, t, f) => {
+    UntypedASTMain::IntConst(_) => input.clone(),
+    UntypedASTMain::FloatConst(_) => input.clone(),
+    UntypedASTMain::BoolConst(_) => input.clone(),
+    UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+    UntypedASTMain::App(name, args) => primitives_fn(name, args, r),
+    UntypedASTMain::ContentOf(_, _) => input.clone(),
+    UntypedASTMain::IfThenElse(b, t, f) => {
       let (b_bool_ast, _) = apply(b);
       let t_ast = apply(t);
       let f_ast = apply(f);
       let b_bool = match b_bool_ast {
-        types::UntypedASTMain::BoolConst(b) => b,
+        BoolConst(b) => b,
         _ => panic!("err ifthenelse"),
       };
       if b_bool {
@@ -27,9 +32,9 @@ pub fn apply(input: &types::UntypedAST) -> types::UntypedAST {
 }
 
 fn primitives_bin_fn(
-  fn_name: &(String, types::Range),
-  inputl: &types::UntypedAST,
-  inputr: &types::UntypedAST,
+  fn_name: &(String, Range),
+  inputl: &UntypedAST,
+  inputr: &UntypedAST,
 ) -> types::UntypedAST {
   let fn_name_str = fn_name.0.as_str();
   match fn_name_str {
@@ -37,17 +42,15 @@ fn primitives_bin_fn(
       let (v1_ast, rng1) = inputl;
       let (v2_ast, rng2) = inputr;
       let (v1, _) = match v1_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputl),
       };
       let (v2, _) = match v2_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::IntConst(v1), types::UntypedASTMain::IntConst(v2)) => {
-          (types::UntypedASTMain::IntConst(v1 + v2), rng1.merge(&rng2))
-        }
+        (IntConst(v1), IntConst(v2)) => (IntConst(v1 + v2), rng1.merge(&rng2)),
         _ => panic!(),
       }
     }
@@ -55,7 +58,7 @@ fn primitives_bin_fn(
       let (v1_ast, rng1) = inputl;
       let (v2_ast, rng2) = inputr;
       let (v1, _) = match v1_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputl),
       };
       let (v2, _) = match v2_ast {
@@ -63,9 +66,7 @@ fn primitives_bin_fn(
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::IntConst(v1), types::UntypedASTMain::IntConst(v2)) => {
-          (types::UntypedASTMain::IntConst(v1 - v2), rng1.merge(&rng2))
-        }
+        (IntConst(v1), IntConst(v2)) => (IntConst(v1 - v2), rng1.merge(&rng2)),
         _ => panic!(),
       }
     }
@@ -73,16 +74,16 @@ fn primitives_bin_fn(
       let (v1_ast, rng1) = inputl;
       let (v2_ast, rng2) = inputr;
       let (v1, _) = match v1_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputl),
       };
       let (v2, _) = match v2_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::IntConst(v1), types::UntypedASTMain::IntConst(v2)) => {
-          (types::UntypedASTMain::IntConst(v1 * v2), rng1.merge(&rng2))
+        (IntConst(v1), types::UntypedASTMain::IntConst(v2)) => {
+          (IntConst(v1 * v2), rng1.merge(&rng2))
         }
         _ => panic!(),
       }
@@ -91,17 +92,15 @@ fn primitives_bin_fn(
       let (v1_ast, rng1) = inputl;
       let (v2_ast, rng2) = inputr;
       let (v1, _) = match v1_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputl),
       };
       let (v2, _) = match v2_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::IntConst(v1), types::UntypedASTMain::IntConst(v2)) => {
-          (types::UntypedASTMain::IntConst(v1 / v2), rng1.merge(&rng2))
-        }
+        (IntConst(v1), IntConst(v2)) => (IntConst(v1 / v2), rng1.merge(&rng2)),
         _ => panic!(),
       }
     }
@@ -109,18 +108,15 @@ fn primitives_bin_fn(
       let (v1_ast, rng1) = inputl;
       let (v2_ast, rng2) = inputr;
       let (v1, _) = match v1_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputl),
       };
       let (v2, _) = match v2_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => (
-          types::UntypedASTMain::FloatConst(v1 + v2),
-          rng1.merge(&rng2),
-        ),
+        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 + v2), rng1.merge(&rng2)),
         _ => panic!(),
       }
     }
@@ -128,18 +124,15 @@ fn primitives_bin_fn(
       let (v1_ast, rng1) = inputl;
       let (v2_ast, rng2) = inputr;
       let (v1, _) = match v1_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputl),
       };
       let (v2, _) = match v2_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => (
-          types::UntypedASTMain::FloatConst(v1 - v2),
-          rng1.merge(&rng2),
-        ),
+        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 - v2), rng1.merge(&rng2)),
         _ => panic!(),
       }
     }
@@ -147,18 +140,15 @@ fn primitives_bin_fn(
       let (v1_ast, rng1) = inputl;
       let (v2_ast, rng2) = inputr;
       let (v1, _) = match v1_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputl),
       };
       let (v2, _) = match v2_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => (
-          types::UntypedASTMain::FloatConst(v1 * v2),
-          rng1.merge(&rng2),
-        ),
+        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 * v2), rng1.merge(&rng2)),
         _ => panic!(),
       }
     }
@@ -166,18 +156,15 @@ fn primitives_bin_fn(
       let (v1_ast, rng1) = inputl;
       let (v2_ast, rng2) = inputr;
       let (v1, _) = match v1_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputl),
       };
       let (v2, _) = match v2_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::FloatConst(v1), types::UntypedASTMain::FloatConst(v2)) => (
-          types::UntypedASTMain::FloatConst(v1 / v2),
-          rng1.merge(&rng2),
-        ),
+        (FloatConst(v1), FloatConst(v2)) => (FloatConst(v1 / v2), rng1.merge(&rng2)),
         _ => panic!(),
       }
     }
@@ -185,17 +172,15 @@ fn primitives_bin_fn(
       let (v1_ast, rng1) = inputl;
       let (v2_ast, rng2) = inputr;
       let (v1, _) = match v1_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputl),
       };
       let (v2, _) = match v2_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::IntConst(v1), types::UntypedASTMain::IntConst(v2)) => {
-          (types::UntypedASTMain::BoolConst(v1 < v2), rng1.merge(&rng2))
-        }
+        (IntConst(v1), IntConst(v2)) => (BoolConst(v1 < v2), rng1.merge(&rng2)),
         _ => panic!(),
       }
     }
@@ -203,17 +188,15 @@ fn primitives_bin_fn(
       let (v1_ast, rng1) = inputl;
       let (v2_ast, rng2) = inputr;
       let (v1, _) = match v1_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputl),
       };
       let (v2, _) = match v2_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::IntConst(v1), types::UntypedASTMain::IntConst(v2)) => {
-          (types::UntypedASTMain::BoolConst(v1 > v2), rng1.merge(&rng2))
-        }
+        (IntConst(v1), IntConst(v2)) => (BoolConst(v1 > v2), rng1.merge(&rng2)),
         _ => panic!(),
       }
     }
@@ -221,18 +204,15 @@ fn primitives_bin_fn(
       let (v1_ast, rng1) = inputl;
       let (v2_ast, rng2) = inputr;
       let (v1, _) = match v1_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputl),
       };
       let (v2, _) = match v2_ast {
-        types::UntypedASTMain::BinApply(name, left, right) => primitives_bin_fn(name, left, right),
+        BinApply(name, left, right) => primitives_bin_fn(name, left, right),
         _ => apply(inputr),
       };
       match (v1, v2) {
-        (types::UntypedASTMain::IntConst(v1), types::UntypedASTMain::IntConst(v2)) => (
-          types::UntypedASTMain::BoolConst(v1 == v2),
-          rng1.merge(&rng2),
-        ),
+        (IntConst(v1), IntConst(v2)) => (BoolConst(v1 == v2), rng1.merge(&rng2)),
         _ => panic!(),
       }
     }
@@ -240,8 +220,68 @@ fn primitives_bin_fn(
   }
 }
 
-fn primitives_fn(utastl: &types::UntypedAST, utastr: &types::UntypedAST) -> types::UntypedAST {
-  let utastl = apply(utastl);
-  let utastr = apply(utastr);
-  panic!()
+fn primitives_fn(name: &str, args: &[UntypedAST], range: &Range) -> UntypedAST {
+  match name {
+    "cos" => {
+      if let Some(ast) = args.get(0) {
+        match apply(ast) {
+          (FloatConst(f), _) => (FloatConst(f.cos()), range.clone()),
+          _ => panic!("arg err : {}", name),
+        }
+      } else {
+        panic!("arg err : {}", name)
+      }
+    }
+    "sin" => {
+      if let Some(ast) = args.get(0) {
+        match apply(ast) {
+          (FloatConst(f), _) => (FloatConst(f.sin()), range.clone()),
+          _ => panic!("arg err : {}", name),
+        }
+      } else {
+        panic!("arg err : {}", name)
+      }
+    }
+    "tab" => {
+      if let Some(ast) = args.get(0) {
+        match apply(ast) {
+          (FloatConst(f), _) => (FloatConst(f.tan()), range.clone()),
+          _ => panic!("arg err : {}", name),
+        }
+      } else {
+        panic!("arg err : {}", name)
+      }
+    }
+    "int" => {
+      if let Some(ast) = args.get(0) {
+        match apply(ast) {
+          (FloatConst(f), _) => (IntConst(f as i64), range.clone()),
+          _ => panic!("arg err : {}", name),
+        }
+      } else {
+        panic!("arg err : {}", name)
+      }
+    }
+    "float" => {
+      if let Some(ast) = args.get(0) {
+        match apply(ast) {
+          (IntConst(i), _) => (FloatConst(i as f64), range.clone()),
+          _ => panic!("arg err : {}", name),
+        }
+      } else {
+        panic!("arg err : {}", name)
+      }
+    }
+    "add" => {
+      if let (Some(ast1), Some(ast2)) = (args.get(0), args.get(1)) {
+        match (apply(ast1), apply(ast2)) {
+          ((IntConst(i1), _), (IntConst(i2), _)) => (IntConst(i1 + i2), range.clone()),
+          _ => panic!("arg err : {}", name),
+        }
+      } else {
+        panic!("arg err : {}", name)
+      }
+    }
+    _ => panic!("unsupported function : {}", name),
+  }
 }
