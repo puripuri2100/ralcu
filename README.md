@@ -14,13 +14,16 @@
     - 整数用：`+`・`-`・`*`・`/`・`>`・`<`
     - 小数用：`+.`・`-.`・`*.`・`/.`・`>.`・`<.`
     - 真偽値用：`&&`・`||`
-- 条件分岐
-  - `if true then 5 else 6`のように使う
 - 関数
   - `sin: float -> float`
   - `cos: float -> float`
   - `float: int -> float`
   - `int: float -> int`
+- 条件分岐
+  - `if true then 5 else 6`のように使う
+  - 条件部分などに式を入れることも可能
+    - `if 2 < (3 + 6) then sin 6.4 else 2.1`
+    - `if true || false then sin 6.4 else 2.1`
 - 変数・関数定義
   - OCaml likeな構文である
   - `let x = e1 in e2`という形で定義する
