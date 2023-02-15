@@ -63,59 +63,59 @@ fn get_primitive_exval(id: String) -> Option<Dnval> {
     ),
     (
       "+.".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("+.".to_owned(), 2, Vec::new()),
     ),
     (
       "-".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("-".to_owned(), 2, Vec::new()),
     ),
     (
       "-.".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("-.".to_owned(), 2, Vec::new()),
     ),
     (
       "*".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("*".to_owned(), 2, Vec::new()),
     ),
     (
       "*.".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("*".to_owned(), 2, Vec::new()),
     ),
     (
       "/".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("/".to_owned(), 2, Vec::new()),
     ),
     (
       "/.".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("/.".to_owned(), 2, Vec::new()),
     ),
     (
       ">".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV(">".to_owned(), 2, Vec::new()),
     ),
     (
       ">.".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV(">.".to_owned(), 2, Vec::new()),
     ),
     (
       "<".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("<".to_owned(), 2, Vec::new()),
     ),
     (
       "<.".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("<.".to_owned(), 2, Vec::new()),
     ),
     (
       "==".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("==".to_owned(), 2, Vec::new()),
     ),
     (
       "&&".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("&&".to_owned(), 2, Vec::new()),
     ),
     (
       "||".to_owned(),
-      Exval::PrimitiveV("+".to_owned(), 2, Vec::new()),
+      Exval::PrimitiveV("||".to_owned(), 2, Vec::new()),
     ),
     (
       "sin".to_owned(),
