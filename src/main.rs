@@ -29,6 +29,8 @@ fn main() {
   a(s);
   let s = "add(3, 2)";
   a(s);
+  let s = "fn f() { 3 + 2 } add(3, 2)";
+  b(s);
 }
 
 #[allow(dead_code)]
