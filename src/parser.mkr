@@ -25,8 +25,6 @@ extern {
     Tok_BINOP_EQ      => "(lexer::TokenKind::BINOP_EQ      (_), _)",
     Tok_LPAREN        => "(lexer::TokenKind::LPAREN           , _)",
     Tok_RPAREN        => "(lexer::TokenKind::RPAREN           , _)",
-    Tok_LBRACKET      => "(lexer::TokenKind::LBRACKET         , _)",
-    Tok_RBRACKET      => "(lexer::TokenKind::RBRACKET         , _)",
     Tok_SEMICOLON     => "(lexer::TokenKind::SEMICOLON        , _)",
     Tok_COLON         => "(lexer::TokenKind::COLON            , _)",
     Tok_COMMA         => "(lexer::TokenKind::COMMA            , _)",
@@ -41,10 +39,6 @@ extern {
     Tok_IF            => "(lexer::TokenKind::IF               , _)",
     Tok_THEN          => "(lexer::TokenKind::THEN             , _)",
     Tok_ELSE          => "(lexer::TokenKind::ELSE             , _)",
-    Tok_FN            => "(lexer::TokenKind::FN               , _)",
-    Tok_LET           => "(lexer::TokenKind::LET              , _)",
-    Tok_MUT           => "(lexer::TokenKind::MUT              , _)",
-    Tok_WHILE         => "(lexer::TokenKind::WHILE            , _)",
   }
 }
 
@@ -71,7 +65,7 @@ nxtoplevel: "UntypedAST" = {
     let rng = opnrng.merge(&clsrng);
     let para =
       match utast.clone() {
-        ((types::UntypedASTMain::FunExp(para, _), _) => para,
+        (types::UntypedASTMain::FunExp(para, _), _) => para,
         _ => panic!(),
       };
     let main = UntypedASTMain::LetRecExp(name, para, Box::new(utast), Box::new(subseq));
@@ -85,7 +79,7 @@ nxnonrecdec: "(String, UntypedAST)" = {
     let name_string = lexer::get_string(name_token).unwrap();
     let (_,rng) = utast;
     let utast =
-      if vars.len() == 0 {
+      if vars.is_empty() {
         utast
       } else {
         types::make_lambda_list(vars, utast, rng)
@@ -96,7 +90,7 @@ nxnonrecdec: "(String, UntypedAST)" = {
     "
     let (_,rng) = utast;
     let utast =
-      if vars.len() == 0 {
+      if vars.is_empty() {
         utast
       } else {
         types::make_lambda_list(vars, utast, rng)
@@ -444,7 +438,7 @@ app: "UntypedAST" = {
     for utast2 in v.iter() {
       let (_, rng1) = utast;
       let (_, rng2) = utast2;
-      let rng = rng1.merge(&rng2);
+      let rng = rng1.merge(rng2);
       let new_utast = (UntypedASTMain::Apply(
         Box::new(utast), Box::new(utast2.clone())
       ), rng);
