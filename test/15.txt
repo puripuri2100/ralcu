@@ -1,0 +1,5 @@
+let f x y =
+  let g x = x / 5 in
+  g x + y
+in
+ f 4 5

@@ -1,0 +1,9 @@
+  let x = 1
+  let z = 1
+  let y = x + 2 in
+  let a =
+    let a1 = 2 in
+    let a2 = 3 in
+  a1 + a2
+  in
+  a

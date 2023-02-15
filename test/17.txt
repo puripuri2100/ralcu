@@ -1,0 +1,6 @@
+  let f =
+    let x = 2 in
+    fun y z -> x + y + z
+  in
+  let g = f 3 in
+  g

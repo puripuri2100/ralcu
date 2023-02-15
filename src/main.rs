@@ -1,46 +1,46 @@
-pub mod backend;
-pub mod frontend;
+use clap::{App, Arg};
+use std::fs::File;
+use std::io::prelude::*;
+
+pub mod environment;
+pub mod eval;
+pub mod lexer;
+pub mod parser;
 pub mod types;
 
 fn main() {
-  //let mut input_file_name = "hoge";
-  //let mut f = File::open(&mut input_file_name).unwrap();
-  //let mut contents = String::new();
-  //f.read_to_string(&mut contents).unwrap();
-  let s = "1 + 2 * 3";
-  a(s);
-  let s = "2 * 2 + 3";
-  a(s);
-  let s = "2 * (2 + 3)";
-  a(s);
-  let s = "if 2 < 3 then 2 + 3 else 2 * 3";
-  a(s);
-  let s = "5 + (if 2 < 3 then 2 + 3 else 2 * 3)";
-  a(s);
-  let s = "cos(3.14)";
-  a(s);
-  let s = "5 + (int(5.6))";
-  a(s);
-  let s = "5.5 +. (float(5))";
-  a(s);
-  let s = "int(float(5)) + 5";
-  a(s);
-  let s = "sin(3.14 *. 2.0)";
-  a(s);
-  let s = "add(3, 2)";
-  a(s);
-  let s = "fn f() { 3 + 2 } add(3, 2)";
-  b(s);
+    let app = App::new("ralcu").version("0.0.1").arg(
+        Arg::with_name("input")
+            .help("Specify input file")
+            .value_name("FILE")
+            .takes_value(true),
+    );
+    let matches = app.get_matches();
+    let input_file_name = matches.value_of("input").unwrap();
+    let mut f = File::open(input_file_name).unwrap();
+    let mut contents = String::new();
+    f.read_to_string(&mut contents).unwrap();
+    println!("file name: {input_file_name}");
+    a(&contents);
 }
 
 #[allow(dead_code)]
 fn a(s: &str) {
-  let ast = backend::main(&frontend::get_ast(s));
-  println!("{s} => {ast}")
+    println!(" --- --- ---\n{s}\n --- --- ---");
+    let env = environment::empty();
+    let tokens = lexer::lex(s).unwrap();
+    let ast_res = parser::parse(tokens);
+    //println!("{:?}", ast_res);
+    let ast = ast_res.unwrap();
+    let (_id, _newenv, v) = eval::eval_decl(env, ast);
+    println!("-> {}", eval::string_of_exval(v));
+    //println!("{:?}", newenv);
 }
 
 #[allow(dead_code)]
 fn b(s: &str) {
-  let (ast, _) = frontend::get_ast(s);
-  println!("{s} => {ast:?}")
+    println!(" --- --- ---\n{s}\n --- --- ---");
+    let tokens = lexer::lex(s).unwrap();
+    let ast_res = parser::parse(tokens);
+    println!("{ast_res:?}");
 }

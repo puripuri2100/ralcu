@@ -1,0 +1,5 @@
+  let f =
+    let x = 2 in
+    fun y z -> x + y + z
+  in
+  f
