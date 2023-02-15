@@ -25,6 +25,8 @@ extern {
     Tok_BINOP_EQ      => "(lexer::TokenKind::BINOP_EQ      (_), _)",
     Tok_LPAREN        => "(lexer::TokenKind::LPAREN           , _)",
     Tok_RPAREN        => "(lexer::TokenKind::RPAREN           , _)",
+    Tok_LBRACKET      => "(lexer::TokenKind::LBRACKET         , _)",
+    Tok_RBRACKET      => "(lexer::TokenKind::RBRACKET         , _)",
     Tok_SEMICOLON     => "(lexer::TokenKind::SEMICOLON        , _)",
     Tok_COLON         => "(lexer::TokenKind::COLON            , _)",
     Tok_COMMA         => "(lexer::TokenKind::COMMA            , _)",
@@ -39,6 +41,10 @@ extern {
     Tok_IF            => "(lexer::TokenKind::IF               , _)",
     Tok_THEN          => "(lexer::TokenKind::THEN             , _)",
     Tok_ELSE          => "(lexer::TokenKind::ELSE             , _)",
+    Tok_FN            => "(lexer::TokenKind::FN               , _)",
+    Tok_LET           => "(lexer::TokenKind::LET              , _)",
+    Tok_MUT           => "(lexer::TokenKind::MUT              , _)",
+    Tok_WHILE         => "(lexer::TokenKind::WHILE            , _)",
   }
 }
 
@@ -446,6 +452,7 @@ app: "UntypedAST" = {
     };
     utast"
   },
+  <v: bot> => {"v"}
 };
 
 
@@ -459,6 +466,10 @@ app_sub: "Vec<UntypedAST>" = {
   => {"Vec::new()"}
 };
 
+add_sub2: "Vec<types::UntypedAST>" = {
+  <_:Tok_COMMA> <lst: app_sub> => {"lst"},
+  => {"Vec::new()"}
+};
 
 
 bot: "UntypedAST" = {
