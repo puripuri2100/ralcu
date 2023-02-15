@@ -29,7 +29,7 @@ extern {
     Tok_COLON         => "(lexer::TokenKind::COLON            , _)",
     Tok_COMMA         => "(lexer::TokenKind::COMMA            , _)",
     Tok_LETNONREC     => "(lexer::TokenKind::LETNONREC        , _)",
-    Tok_LETREC        => "(lexer::TokenKind::LETREC        , _)",
+    Tok_LETREC        => "(lexer::TokenKind::LETREC           , _)",
     Tok_LETAND        => "(lexer::TokenKind::LETAND           , _)",
     Tok_IN            => "(lexer::TokenKind::IN               , _)",
     Tok_LAMBDA        => "(lexer::TokenKind::LAMBDA           , _)",
