@@ -6,11 +6,15 @@ use super::lexer;
 use super::types;
 use super::types::{Range, UntypedAST, UntypedASTMain};
 use std::iter::Peekable;
+use thiserror::Error;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Error)]
 pub enum ParseError {
+  #[error("unexpected token: {0:?}")]
   UnexpectedToken(lexer::Token),
+  #[error("redundant expression: {0:?}")]
   RedundantExpression(lexer::Token),
+  #[error("EOF")]
   Eof,
 }
 

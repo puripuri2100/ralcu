@@ -1,4 +1,5 @@
 use super::types;
+use thiserror::Error;
 
 // トークン
 #[derive(Debug, Clone, PartialEq)]
@@ -74,28 +75,29 @@ pub fn get_f64(tok: TokenKind) -> Option<f64> {
 }
 
 // エラー情報の実装
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum LexErrorKind {
-  InvalidChar(char),
-  UnDefinedToken(String),
-  Eof,
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Error)]
+pub enum LexError {
+  #[error("invalid char: {0} at {1:?}")]
+  InvalidChar(char, types::Range),
+  #[error("undefind token: {0} at {1:?}")]
+  UnDefinedToken(String, types::Range),
+  #[error("EOF")]
+  Eof(types::Range),
 }
-
-pub type LexError = (LexErrorKind, types::Range);
 
 #[allow(dead_code)]
 fn error_invalid_char(c: char, r: types::Range) -> LexError {
-  (LexErrorKind::InvalidChar(c), r)
+  LexError::InvalidChar(c, r)
 }
 
 #[allow(dead_code)]
 fn error_undefined_token(s: String, r: types::Range) -> LexError {
-  (LexErrorKind::UnDefinedToken(s), r)
+  LexError::UnDefinedToken(s, r)
 }
 
 #[allow(dead_code)]
 fn error_eof(r: types::Range) -> LexError {
-  (LexErrorKind::Eof, r)
+  LexError::Eof(r)
 }
 
 fn is_digit(c: &char) -> bool {
