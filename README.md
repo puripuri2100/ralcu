@@ -96,7 +96,9 @@ parser.mkrファイルは、BNF likeな構文定義文と、抽象構文木を�
 事前に用意されている関数や二項演算子は`def_primitive`で定義されている。
 
 
+# その他
 
+[2022年度 GB27001 ソフトウェアサイエンス特別講義A](https://kdb.tsukuba.ac.jp/syllabi/2022/GB27001/jpn/0)の課題として拡張・修正しました。
 
 ---
 
